@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis" path="/com/thingsthemselves/gedit/plugins/ex-mortis/">
+		<key name="restore-between-sessions" type="b">
+			<default>false</default>
+			<summary>Restore between sessions</summary>
+			<description>Whether ex-mortis should restore windows and tabs between sessions.</description>
+		</key>
+		<key name="restore-uris" type="aas">
+			<default>[]</default>
+			<summary>Restore URIs</summary>
+			<description>URIs (windows and tabs) to restore between sessions.</description>
+		</key>
+	</schema>
+</schemalist>
