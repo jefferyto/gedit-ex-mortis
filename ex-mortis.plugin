@@ -5,6 +5,7 @@ Module=ex-mortis
 IAge=3
 Name=Ex-Mortis
 Description=Reopen closed windows and optionally restore windows between sessions
+Icon=window-new
 Authors=Jeffery To <jeffery.to@gmail.com>
 Copyright=Copyright © 2017 Jeffery To
 Website=https://github.com/jefferyto/gedit-ex-mortis
