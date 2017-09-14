@@ -4,12 +4,12 @@
 		<key name="restore-between-sessions" type="b">
 			<default>false</default>
 			<summary>Restore between sessions</summary>
-			<description>Whether ex-mortis should restore windows and tabs between sessions.</description>
+			<description>Whether ex-mortis should restore windows between sessions.</description>
 		</key>
-		<key name="restore-uris" type="aas">
+		<key name="restore-uris" type="aaas">
 			<default>[]</default>
 			<summary>Restore URIs</summary>
-			<description>URIs (windows and tabs) to restore between sessions.</description>
+			<description>URIs (windows / tab groups / documents) to restore between sessions.</description>
 		</key>
 	</schema>
 </schemalist>
