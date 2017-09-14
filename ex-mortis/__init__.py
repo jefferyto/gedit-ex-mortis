@@ -88,10 +88,10 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		self._open_uris = {}
 		self._closing_documents = {}
-		self._closing_notebook_maps = {}
+		self._closing_notebook_id_maps = {}
 		self._closed_uris = []
 		self._quitting_documents = None
-		self._quitting_notebook_maps = None
+		self._quitting_notebook_id_maps = None
 		self._restore_window = None
 		self._restore_handler = None
 		self._reopen_action = reopen_action
@@ -137,10 +137,10 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		self._open_uris = None
 		self._closing_documents = None
-		self._closing_notebook_maps = None
+		self._closing_notebook_id_maps = None
 		self._closed_uris = None
 		self._quitting_documents = None
-		self._quitting_notebook_maps = None
+		self._quitting_notebook_id_maps = None
 		self._restore_window = None
 		self._restore_handler = None
 		self._reopen_action = None
@@ -185,7 +185,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _teardown_window(self, window):
 		disconnect_handlers(self, window)
 
-		if self._restore_window == window:
+		if window is self._restore_window:
 			window.disconnect(self._restore_handler)
 			self._restore_window = None
 			self._restore_handler = None
@@ -282,26 +282,26 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		documents = window.get_documents()
 		self._closing_documents[window] = documents
-		self._closing_notebook_maps[window] = self._get_notebook_map(documents)
+		self._closing_notebook_id_maps[window] = self._get_notebook_id_map(documents)
 
 	def _cancel_closing_window(self, window):
 		if self._is_closing_window(window):
 			Gedit.debug_plugin_message("%s", window)
 
 			del self._closing_documents[window]
-			del self._closing_notebook_maps[window]
+			del self._closing_notebook_id_maps[window]
 
 	def _end_closing_window(self, window):
 		if self._is_closing_window(window):
 			Gedit.debug_plugin_message("%s", window)
 
-			uris = self._get_window_uris(self._closing_documents[window], self._closing_notebook_maps[window])
+			uris = self._get_window_uris(self._closing_documents[window], self._closing_notebook_id_maps[window])
 			if uris:
 				self._closed_uris.append(uris)
 				self._reopen_action.set_enabled(True)
 
 			del self._closing_documents[window]
-			del self._closing_notebook_maps[window]
+			del self._closing_notebook_id_maps[window]
 
 
 	# reopen window
@@ -323,15 +323,15 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		Gedit.debug_plugin_message("")
 
 		quitting_documents = {}
-		quitting_notebook_maps = {}
+		quitting_notebook_id_maps = {}
 
 		for window in self.app.get_main_windows():
 			documents = window.get_documents()
 			quitting_documents[window] = documents
-			quitting_notebook_maps[window] = self._get_notebook_map(documents)
+			quitting_notebook_id_maps[window] = self._get_notebook_id_map(documents)
 
 		self._quitting_documents = quitting_documents
-		self._quitting_notebook_maps = quitting_notebook_maps
+		self._quitting_notebook_id_maps = quitting_notebook_id_maps
 
 	def _cancel_quitting(self):
 		if self._is_quitting():
@@ -339,14 +339,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			Gedit.debug_plugin_message("")
 
 			self._quitting_documents = None
-			self._quitting_notebook_maps = None
+			self._quitting_notebook_id_maps = None
 
 	def _end_quitting(self):
 		if self._is_quitting():
 			quitting_uris = {}
 
 			for window, documents in self._quitting_documents.items():
-				quitting_uris[window] = self._get_window_uris(documents, self._quitting_notebook_maps[window])
+				quitting_uris[window] = self._get_window_uris(documents, self._quitting_notebook_id_maps[window])
 
 			Gedit.debug_plugin_message("%d windows", len(quitting_uris))
 
@@ -371,7 +371,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 				self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
 
 	def on_restore_window_tab_added(self, window, tab):
-		if tab.get_document().is_untouched() and tab.get_state() == Gedit.TabState.STATE_NORMAL:
+		if tab.get_document().is_untouched() and tab.get_state() is Gedit.TabState.STATE_NORMAL:
 			Gedit.debug_plugin_message("closing untouched tab")
 			def close_tab():
 				window.close_tab(tab)
@@ -413,16 +413,16 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	# uris
 
-	def _get_document_notebook(self, document):
-		return Gedit.Tab.get_from_document(document).get_parent()
+	def _get_document_notebook_id(self, document):
+		return id(Gedit.Tab.get_from_document(document).get_parent())
 
-	def _get_notebook_map(self, documents):
-		notebook_map = {}
+	def _get_notebook_id_map(self, documents):
+		notebook_id_map = {}
 		for document in documents:
-			notebook_map[document] = self._get_document_notebook(document)
-		return notebook_map
+			notebook_id_map[document] = self._get_document_notebook_id(document)
+		return notebook_id_map
 
-	def _get_window_uris(self, documents, notebook_map=None):
+	def _get_window_uris(self, documents, notebook_id_map=None):
 		window_uris = []
 		cur_notebook = None
 		cur_notebook_uris = None
@@ -431,7 +431,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			uri = self._get_document_uri(document)
 			if uri:
 				# trying to get a closed tab from the document causes a segfault
-				next_notebook = notebook_map[document] if notebook_map else self._get_document_notebook(document)
+				next_notebook = notebook_id_map[document] if notebook_id_map else self._get_document_notebook_id(document)
 
 				if next_notebook != cur_notebook:
 					cur_notebook = next_notebook
