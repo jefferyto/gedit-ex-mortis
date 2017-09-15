@@ -57,6 +57,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		GObject.Object.__init__(self)
 
 	def do_activate(self):
+		Gedit.debug_plugin_message("")
+
 		app = self.app
 
 		# reopen action
@@ -109,6 +111,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			self._restore_windows()
 
 	def do_deactivate(self):
+		Gedit.debug_plugin_message("")
+
 		app = self.app
 
 		# app
@@ -149,28 +153,44 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# settings ui
 
 	def do_create_configure_widget(self):
+		Gedit.debug_plugin_message("")
+
 		settings = self._get_settings()
+
 		if settings:
 			widget = Gtk.CheckButton(_("Restore windows between sessions"))
 			connect_handlers(self, widget, ['toggled'], 'configure_check_button', settings)
 			connect_handlers(self, settings, ['changed::' + self.RESTORE_BETWEEN_SESSIONS], 'configure_settings', widget)
 			widget.set_active(settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS))
+
 		else:
 			widget = Gtk.Box()
 			widget.add(Gtk.Label(_("Could not load settings schema")))
+
 		widget.set_border_width(5)
+
 		return widget
 
 	def on_configure_check_button_toggled(self, widget, settings):
-		settings.set_boolean(self.RESTORE_BETWEEN_SESSIONS, widget.get_active())
+		should_restore = widget.get_active()
+
+		Gedit.debug_plugin_message("%s", should_restore)
+
+		settings.set_boolean(self.RESTORE_BETWEEN_SESSIONS, should_restore)
 
 	def on_configure_settings_changed_restore_between_sessions(self, settings, prop, widget):
-		widget.set_active(settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS))
+		should_restore = settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
+
+		Gedit.debug_plugin_message("%s", should_restore)
+
+		widget.set_active(should_restore)
 
 
 	# window setup
 
 	def _setup_window(self, window):
+		Gedit.debug_plugin_message("%s", window)
+
 		connect_handlers(self, window, ['delete-event', 'tab-added', 'tab-removed', 'tabs-reordered'], 'window')
 
 		for document in window.get_documents():
@@ -179,6 +199,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._save_state(window)
 
 	def _teardown_window(self, window):
+		Gedit.debug_plugin_message("%s", window)
+
 		disconnect_handlers(self, window)
 
 		if window is self._restore_window:
@@ -195,11 +217,15 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# tab setup
 
 	def _setup_tab(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
 		connect_handlers(self, tab.get_document().get_file(), ['notify::location'], 'source_file', window)
 
 		self._save_state(window)
 
 	def _teardown_tab(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
 		disconnect_handlers(self, tab.get_document().get_file())
 
 		self._save_state(window)
@@ -210,6 +236,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_app_window_added(self, app, window):
 		# preferences window also triggers this signal
 		if isinstance(window, Gedit.Window):
+			Gedit.debug_plugin_message("%s", window)
+
 			self._cancel_quitting()
 
 			self._setup_window(window)
@@ -217,14 +245,20 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_app_window_removed(self, app, window):
 		# preferences window also triggers this signal
 		if isinstance(window, Gedit.Window):
+			Gedit.debug_plugin_message("%s", window)
+
 			self._end_closing_window(window)
 
 			self._teardown_window(window)
 
 	def on_app_shutdown(self, app):
+		Gedit.debug_plugin_message("")
+
 		self._end_quitting()
 
 	def on_window_delete_event(self, window, event):
+		Gedit.debug_plugin_message("%s", window)
+
 		# closing the only window also quits the app
 		if len(self.app.get_main_windows()) == 1:
 			self._start_quitting()
@@ -234,6 +268,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		return False
 
 	def on_window_tab_added(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
 		self._cancel_closing_window(window)
 
 		self._cancel_quitting()
@@ -241,9 +277,13 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._setup_tab(window, tab)
 
 	def on_window_tab_removed(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
 		self._teardown_tab(window, tab)
 
 	def on_window_tabs_reordered(self, window):
+		Gedit.debug_plugin_message("%s", window)
+
 		self._cancel_closing_window(window)
 
 		self._cancel_quitting()
@@ -251,15 +291,28 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._save_state(window)
 
 	def on_source_file_notify_location(self, source_file, pspec, window):
+		location = source_file.get_location()
+		uri = location.get_uri() if location else None
+
+		Gedit.debug_plugin_message("%s", uri)
+
 		self._save_state(window)
 
 	def on_settings_changed_restore_between_sessions(self, settings, prop):
+		should_restore = settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
+
+		Gedit.debug_plugin_message("%s", should_restore)
+
 		self._save_state(None)
 
 	def on_reopen_activate(self, action, parameter):
+		Gedit.debug_plugin_message("")
+
 		self._reopen_closed_window()
 
 	def on_quit_activate(self, action, parameter):
+		Gedit.debug_plugin_message("")
+
 		self._start_quitting()
 
 		for window in self.app.get_main_windows():
@@ -280,31 +333,49 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._closing_info[window] = (documents, self._get_notebook_id_map(documents))
 
 	def _cancel_closing_window(self, window):
+		Gedit.debug_plugin_message("%s", window)
+
 		if self._is_closing_window(window):
-			Gedit.debug_plugin_message("%s", window)
+			Gedit.debug_plugin_message("closing window started, cancelling")
 
 			del self._closing_info[window]
 
 	def _end_closing_window(self, window):
-		if self._is_closing_window(window):
-			Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("%s", window)
 
+		if self._is_closing_window(window):
 			uris = self._get_window_uris(*self._closing_info[window])
+
 			if uris:
+				Gedit.debug_plugin_message("window has reopenable files, caching")
+
 				self._closed_uris.append(uris)
 				self._reopen_action.set_enabled(True)
 
+			else:
+				Gedit.debug_plugin_message("window does not have reopenable files, ignoring")
+
 			del self._closing_info[window]
+
+		else:
+			Gedit.debug_plugin_message("end closing window without starting?")
 
 
 	# reopen window
 
 	def _reopen_closed_window(self):
+		Gedit.debug_plugin_message("")
+
 		closed_uris = self._closed_uris
-		Gedit.debug_plugin_message("%d reopenable windows", len(closed_uris))
+
 		if len(closed_uris) > 0:
+			Gedit.debug_plugin_message("have cached windows, reopening")
+
 			self._open_uris_in_window(closed_uris.pop())
 			self._reopen_action.set_enabled(len(closed_uris) > 0)
+
+		else:
+			Gedit.debug_plugin_message("do not have cached windows, how did we get here?")
 
 
 	# quit app
@@ -324,31 +395,39 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._quitting_info = quitting_info
 
 	def _cancel_quitting(self):
-		if self._is_quitting():
+		Gedit.debug_plugin_message("")
 
-			Gedit.debug_plugin_message("")
+		if self._is_quitting():
+			Gedit.debug_plugin_message("quitting started, cancelling")
 
 			self._quitting_info = None
 
 	def _end_quitting(self):
+		Gedit.debug_plugin_message("")
+
 		if self._is_quitting():
 			quitting_uris = {}
 
 			for window, info in self._quitting_info.items():
 				quitting_uris[window] = self._get_window_uris(*info)
 
-			Gedit.debug_plugin_message("%d windows", len(quitting_uris))
+			Gedit.debug_plugin_message("saving %d windows", len(quitting_uris))
 
 			self._set_restore_uris(quitting_uris)
+
+		else:
+			Gedit.debug_plugin_message("end quitting without starting?")
 
 
 	# restore windows
 
 	def _restore_windows(self):
+		Gedit.debug_plugin_message("")
+
 		if self._should_restore_uris():
 			uris_list = self._get_restore_uris()
 
-			Gedit.debug_plugin_message("%d windows", len(uris_list))
+			Gedit.debug_plugin_message("restoring %d windows", len(uris_list))
 
 			for uris in uris_list:
 				self._open_uris_in_window(uris)
@@ -359,13 +438,21 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 				self._restore_window = window
 				self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
 
+		else:
+			Gedit.debug_plugin_message("not restoring windows")
+
 	def on_restore_window_tab_added(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
 		if tab.get_document().is_untouched() and tab.get_state() is Gedit.TabState.STATE_NORMAL:
 			Gedit.debug_plugin_message("closing untouched tab")
+
 			def close_tab():
 				window.close_tab(tab)
 				return False
+
 			GObject.idle_add(close_tab)
+
 		else:
 			Gedit.debug_plugin_message("new tab is not untouched")
 
@@ -377,6 +464,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# saving state
 
 	def _save_state(self, window):
+		Gedit.debug_plugin_message("%s", window)
+
 		if window in self.app.get_main_windows():
 			documents = window.get_documents()
 			self._open_uris[window] = self._get_window_uris(documents, self._get_notebook_id_map(documents))
@@ -461,11 +550,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	def _get_settings(self):
 		schemas_path = os.path.join(BASE_PATH, 'schemas')
+
 		try:
 			schema_source = Gio.SettingsSchemaSource.new_from_directory(schemas_path, Gio.SettingsSchemaSource.get_default(), False)
 			schema = Gio.SettingsSchemaSource.lookup(schema_source, self.SETTINGS_SCHEMA_ID, False)
 			settings = Gio.Settings.new_full(schema, None, None) if schema else None
+
 		except:
 			Gedit.debug_plugin_message("could not load settings schema from %s", schemas_path)
 			settings = None
+
 		return settings
