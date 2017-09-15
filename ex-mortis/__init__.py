@@ -428,6 +428,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			self._open_uris_in_window(uris)
 
 		window = self.app.get_active_window()
+
 		if window:
 			Gedit.debug_plugin_message("waiting for new tab in %s", window)
 			self._restore_window = window
@@ -496,6 +497,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	def _set_restore_uris(self, uris_dict):
 		settings = self._settings
+
 		if settings:
 			value = [uris for uris in uris_dict.values() if uris] if self._should_restore_windows() else []
 			settings.set_value(self.RESTORE_URIS, GLib.Variant(self.RESTORE_URIS_GVARIANT_TYPE, value))
@@ -515,6 +517,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		for document in documents:
 			uri = self._get_document_uri(document)
+
 			if uri:
 				next_notebook_id = notebook_id_map[document]
 
@@ -535,7 +538,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		return uri
 
 	def _open_uris_in_window(self, window_uris, window=None):
-		flattened = [uri for notebook_uris in window_uris for uri in notebook_uris]
+		flattened = [uri for notebook_uris in window_uris for uri in notebook_uris if uri]
+
 		if flattened:
 			if not window:
 				window = Gedit.App.create_window(self.app, None)
@@ -543,12 +547,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			window.show()
 
 			is_first_notebook = True
-			for notebook_uris in window_uris:
-				if not is_first_notebook:
-					window.activate_action('new-tab-group')
 
-				locations = [Gio.File.new_for_uri(uri) for uri in notebook_uris]
-				Gedit.commands_load_locations(window, locations, None, 0, 0)
-				is_first_notebook = False
+			for notebook_uris in window_uris:
+				if notebook_uris:
+					if not is_first_notebook:
+						window.activate_action('new-tab-group')
+
+					locations = [Gio.File.new_for_uri(uri) for uri in notebook_uris if uri]
+					Gedit.commands_load_locations(window, locations, None, 0, 0)
+					is_first_notebook = False
 
 			window.present()
