@@ -106,8 +106,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			# plugin activated during existing session
 			for window in windows:
 				self._setup_window(window)
-		else:
-			# plugin activate during app startup
+		elif self._should_restore_windows():
+			# plugin activated during app startup
 			self._restore_windows()
 
 	def do_deactivate(self):
@@ -196,7 +196,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		for document in window.get_documents():
 			self._setup_tab(window, Gedit.Tab.get_from_document(document))
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 	def _teardown_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
@@ -211,7 +211,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		for document in window.get_documents():
 			self._teardown_tab(window, Gedit.Tab.get_from_document(document))
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 
 	# tab setup
@@ -221,14 +221,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		connect_handlers(self, tab.get_document().get_file(), ['notify::location'], 'source_file', window)
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 	def _teardown_tab(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
 		disconnect_handlers(self, tab.get_document().get_file())
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 
 	# signal handlers
@@ -288,7 +288,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		self._cancel_quitting()
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 	def on_source_file_notify_location(self, source_file, pspec, window):
 		location = source_file.get_location()
@@ -296,14 +296,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		Gedit.debug_plugin_message("%s", uri)
 
-		self._save_state(window)
+		self._update_open_uris(window)
 
 	def on_settings_changed_restore_between_sessions(self, settings, prop):
 		should_restore = settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
 
 		Gedit.debug_plugin_message("%s", should_restore)
 
-		self._save_state(None)
+		self._save_open_uris()
 
 	def on_reopen_activate(self, action, parameter):
 		Gedit.debug_plugin_message("")
@@ -378,7 +378,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			Gedit.debug_plugin_message("do not have cached windows, how did we get here?")
 
 
-	# quit app
+	# quitting
 
 	def _is_quitting(self):
 		return self._quitting_info is not None
@@ -421,25 +421,25 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	# restore windows
 
+	def _should_restore_windows(self):
+		settings = self._settings
+		return settings and settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
+
 	def _restore_windows(self):
 		Gedit.debug_plugin_message("")
 
-		if self._should_restore_uris():
-			uris_list = self._get_restore_uris()
+		uris_list = self._get_restore_uris()
 
-			Gedit.debug_plugin_message("restoring %d windows", len(uris_list))
+		Gedit.debug_plugin_message("restoring %d windows", len(uris_list))
 
-			for uris in uris_list:
-				self._open_uris_in_window(uris)
+		for uris in uris_list:
+			self._open_uris_in_window(uris)
 
-			window = self.app.get_active_window()
-			if window:
-				Gedit.debug_plugin_message("waiting for new tab in %s", window)
-				self._restore_window = window
-				self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
-
-		else:
-			Gedit.debug_plugin_message("not restoring windows")
+		window = self.app.get_active_window()
+		if window:
+			Gedit.debug_plugin_message("waiting for new tab in %s", window)
+			self._restore_window = window
+			self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
 
 	def on_restore_window_tab_added(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
@@ -461,23 +461,42 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._restore_handler = None
 
 
-	# saving state
+	# saving open uris
 
-	def _save_state(self, window):
-		Gedit.debug_plugin_message("%s", window)
+	def _update_open_uris(self, window):
+		changed = False
 
 		if window in self.app.get_main_windows():
 			documents = window.get_documents()
 			self._open_uris[window] = self._get_window_uris(documents, self._get_notebook_id_map(documents))
+			changed = True
 
 		elif window in self._open_uris:
 			del self._open_uris[window]
+			changed = True
 
+		if changed:
+			self._save_open_uris()
+
+	def _save_open_uris(self):
 		self._set_restore_uris(self._open_uris)
 
-	def _should_restore_uris(self):
-		settings = self._settings
-		return settings and settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
+
+	# settings
+
+	def _get_settings(self):
+		schemas_path = os.path.join(BASE_PATH, 'schemas')
+
+		try:
+			schema_source = Gio.SettingsSchemaSource.new_from_directory(schemas_path, Gio.SettingsSchemaSource.get_default(), False)
+			schema = Gio.SettingsSchemaSource.lookup(schema_source, self.SETTINGS_SCHEMA_ID, False)
+			settings = Gio.Settings.new_full(schema, None, None) if schema else None
+
+		except:
+			Gedit.debug_plugin_message("could not load settings schema from %s", schemas_path)
+			settings = None
+
+		return settings
 
 	def _get_restore_uris(self):
 		settings = self._settings
@@ -486,7 +505,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _set_restore_uris(self, uris_dict):
 		settings = self._settings
 		if settings:
-			value = [uris for uris in uris_dict.values() if uris] if self._should_restore_uris() else []
+			value = [uris for uris in uris_dict.values() if uris] if self._should_restore_windows() else []
 			settings.set_value(self.RESTORE_URIS, GLib.Variant(self.RESTORE_URIS_GVARIANT_TYPE, value))
 
 
@@ -544,20 +563,3 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 				is_first_notebook = False
 
 			window.present()
-
-
-	# settings
-
-	def _get_settings(self):
-		schemas_path = os.path.join(BASE_PATH, 'schemas')
-
-		try:
-			schema_source = Gio.SettingsSchemaSource.new_from_directory(schemas_path, Gio.SettingsSchemaSource.get_default(), False)
-			schema = Gio.SettingsSchemaSource.lookup(schema_source, self.SETTINGS_SCHEMA_ID, False)
-			settings = Gio.Settings.new_full(schema, None, None) if schema else None
-
-		except:
-			Gedit.debug_plugin_message("could not load settings schema from %s", schemas_path)
-			settings = None
-
-		return settings
