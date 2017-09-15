@@ -126,16 +126,16 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		if self._settings:
 			disconnect_handlers(self, self._settings)
 
-		# reopen action
-		app.remove_action('reopen-closed-window')
-
-		# reopen menu item
-		app.set_accels_for_action('app.reopen-closed-window', [])
-
 		# quit action
 		app.remove_action('quit')
 		app.add_action(self._original_quit_action)
 		disconnect_handlers(self, self._custom_quit_action)
+
+		# reopen menu item
+		app.set_accels_for_action('app.reopen-closed-window', [])
+
+		# reopen action
+		app.remove_action('reopen-closed-window')
 
 		self._open_uris = None
 		self._closing_info = None
