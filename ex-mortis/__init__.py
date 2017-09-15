@@ -386,13 +386,8 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _start_quitting(self):
 		Gedit.debug_plugin_message("")
 
-		quitting_info = {}
-
-		for window in self.app.get_main_windows():
-			documents = window.get_documents()
-			quitting_info[window] = (documents, self._get_notebook_id_map(documents))
-
-		self._quitting_info = quitting_info
+		window_documents = {window : window.get_documents() for window in self.app.get_main_windows()}
+		self._quitting_info = {window : (documents, self._get_notebook_id_map(documents)) for window, documents in window_documents.items()}
 
 	def _cancel_quitting(self):
 		Gedit.debug_plugin_message("")
@@ -406,10 +401,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		Gedit.debug_plugin_message("")
 
 		if self._is_quitting():
-			quitting_uris = {}
-
-			for window, info in self._quitting_info.items():
-				quitting_uris[window] = self._get_window_uris(*info)
+			quitting_uris = {window : self._get_window_uris(*info) for window, info in self._quitting_info.items()}
 
 			Gedit.debug_plugin_message("saving %d windows", len(quitting_uris))
 
@@ -514,10 +506,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# notebook ids need to be precomputed at the start of closing window or quitting
 	# because trying to get a closed tab from the document causes a segfault
 	def _get_notebook_id_map(self, documents):
-		notebook_id_map = {}
-		for document in documents:
-			notebook_id_map[document] = id(Gedit.Tab.get_from_document(document).get_parent())
-		return notebook_id_map
+		return {document : id(Gedit.Tab.get_from_document(document).get_parent()) for document in documents}
 
 	def _get_window_uris(self, documents, notebook_id_map):
 		window_uris = []
