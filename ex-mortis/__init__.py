@@ -562,16 +562,10 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		window_uris = [[uri for uri in notebook_uris if uri] for notebook_uris in window_uris]
 		return [notebook_uris for notebook_uris in window_uris if notebook_uris]
 
-	def _get_document_uri(self, document):
-		source_file = document.get_file()
-		location = source_file.get_location() if source_file else None
-		uri = location.get_uri() if location else None
-		return uri
-
 	def _open_uris_in_window(self, window_uris, window=None):
-		flattened = [uri for notebook_uris in window_uris for uri in notebook_uris if uri]
+		window_uris = self._filter_window_uris(window_uris)
 
-		if flattened:
+		if window_uris:
 			if not window:
 				window = Gedit.App.create_window(self.app, None)
 
@@ -580,12 +574,17 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			is_first_notebook = True
 
 			for notebook_uris in window_uris:
-				if notebook_uris:
-					if not is_first_notebook:
-						window.activate_action('new-tab-group')
+				if not is_first_notebook:
+					window.activate_action('new-tab-group')
 
-					locations = [Gio.File.new_for_uri(uri) for uri in notebook_uris if uri]
-					Gedit.commands_load_locations(window, locations, None, 0, 0)
-					is_first_notebook = False
+				locations = [Gio.File.new_for_uri(uri) for uri in notebook_uris]
+				Gedit.commands_load_locations(window, locations, None, 0, 0)
+				is_first_notebook = False
 
 			window.present()
+
+	def _get_document_uri(self, document):
+		source_file = document.get_file()
+		location = source_file.get_location() if source_file else None
+		uri = location.get_uri() if location else None
+		return uri
