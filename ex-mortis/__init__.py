@@ -327,12 +327,12 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# closing window
 
 	def _is_closing_window(self, window):
-		return window in self._closing_info
+		return id(window) in self._closing_info
 
 	def _start_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
 
-		self._closing_info[window] = self._get_window_info(window)
+		self._closing_info[id(window)] = self._get_window_info(window)
 
 	def _cancel_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
@@ -340,19 +340,19 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		if self._is_closing_window(window):
 			Gedit.debug_plugin_message("closing window started, cancelling")
 
-			del self._closing_info[window]
+			del self._closing_info[id(window)]
 
 	def _update_closing_window(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
 		if self._is_closing_window(window):
-			self._update_window_uris(*self._closing_info[window], tab)
+			self._update_window_uris(*self._closing_info[id(window)], tab)
 
 	def _end_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
 
 		if self._is_closing_window(window):
-			uris = self._filter_window_uris(*self._closing_info[window])
+			uris = self._filter_window_uris(*self._closing_info[id(window)])
 
 			if uris:
 				Gedit.debug_plugin_message("window has reopenable files, caching")
@@ -363,7 +363,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			else:
 				Gedit.debug_plugin_message("window does not have reopenable files, ignoring")
 
-			del self._closing_info[window]
+			del self._closing_info[id(window)]
 
 		else:
 			Gedit.debug_plugin_message("end closing window without starting?")
@@ -394,7 +394,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _start_quitting(self):
 		Gedit.debug_plugin_message("")
 
-		self._quitting_info = {window : self._get_window_info(window) for window in self.app.get_main_windows()}
+		self._quitting_info = {id(window) : self._get_window_info(window) for window in self.app.get_main_windows()}
 
 	def _cancel_quitting(self):
 		Gedit.debug_plugin_message("")
@@ -408,8 +408,9 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
 		if self._is_quitting():
-			if window in self._quitting_info:
-				self._update_window_uris(*self._quitting_info[window], tab)
+			window_id = id(window)
+			if window_id in self._quitting_info:
+				self._update_window_uris(*self._quitting_info[window_id], tab)
 
 			else:
 				Gedit.debug_plugin_message("quitting started but window is not tracked?")
@@ -418,7 +419,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		Gedit.debug_plugin_message("")
 
 		if self._is_quitting():
-			quitting_uris = {window : self._filter_window_uris(*info) for window, info in self._quitting_info.items()}
+			quitting_uris = {window_id : self._filter_window_uris(*info) for window_id, info in self._quitting_info.items()}
 
 			Gedit.debug_plugin_message("saving %d windows", len(quitting_uris))
 
@@ -476,14 +477,15 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# saving open uris
 
 	def _update_open_uris(self, window):
+		window_id = id(window)
 		changed = False
 
 		if window in self.app.get_main_windows():
-			self._open_uris[window] = self._filter_window_uris(*self._get_window_info(window))
+			self._open_uris[window_id] = self._filter_window_uris(*self._get_window_info(window))
 			changed = True
 
-		elif window in self._open_uris:
-			del self._open_uris[window]
+		elif window_id in self._open_uris:
+			del self._open_uris[window_id]
 			changed = True
 
 		if changed:
