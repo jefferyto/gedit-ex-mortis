@@ -279,6 +279,10 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_window_tab_removed(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
+		self._update_closing_window(window, tab)
+
+		self._update_quitting(window, tab)
+
 		self._teardown_tab(window, tab)
 
 	def on_window_tabs_reordered(self, window):
@@ -329,8 +333,9 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _start_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
 
-		documents = window.get_documents()
-		self._closing_info[window] = (documents, self._get_notebook_id_map(documents))
+		self._closing_info[window] = self._get_window_info(window)
+
+		Gedit.debug_plugin_message("%s", self._closing_info[window])
 
 	def _cancel_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
@@ -340,11 +345,17 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 			del self._closing_info[window]
 
+	def _update_closing_window(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
+		if self._is_closing_window(window):
+			self._update_window_uris(*self._closing_info[window], tab)
+
 	def _end_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
 
 		if self._is_closing_window(window):
-			uris = self._get_window_uris(*self._closing_info[window])
+			uris = self._filter_window_uris(*self._closing_info[window])
 
 			if uris:
 				Gedit.debug_plugin_message("window has reopenable files, caching")
@@ -386,8 +397,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _start_quitting(self):
 		Gedit.debug_plugin_message("")
 
-		window_documents = {window : window.get_documents() for window in self.app.get_main_windows()}
-		self._quitting_info = {window : (documents, self._get_notebook_id_map(documents)) for window, documents in window_documents.items()}
+		self._quitting_info = {window : self._get_window_info(window) for window in self.app.get_main_windows()}
 
 	def _cancel_quitting(self):
 		Gedit.debug_plugin_message("")
@@ -397,15 +407,27 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 			self._quitting_info = None
 
+	def _update_quitting(self, window, tab):
+		Gedit.debug_plugin_message("%s %s", window, tab)
+
+		if self._is_quitting():
+			if window in self._quitting_info:
+				self._update_window_uris(*self._quitting_info[window], tab)
+
+			else:
+				Gedit.debug_plugin_message("quitting started but window is not tracked?")
+
 	def _end_quitting(self):
 		Gedit.debug_plugin_message("")
 
 		if self._is_quitting():
-			quitting_uris = {window : self._get_window_uris(*info) for window, info in self._quitting_info.items()}
+			quitting_uris = {window : self._filter_window_uris(*info) for window, info in self._quitting_info.items()}
 
 			Gedit.debug_plugin_message("saving %d windows", len(quitting_uris))
 
 			self._set_restore_uris(quitting_uris)
+
+			self._quitting_info = None
 
 		else:
 			Gedit.debug_plugin_message("end quitting without starting?")
@@ -460,8 +482,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		changed = False
 
 		if window in self.app.get_main_windows():
-			documents = window.get_documents()
-			self._open_uris[window] = self._get_window_uris(documents, self._get_notebook_id_map(documents))
+			self._open_uris[window] = self._filter_window_uris(*self._get_window_info(window))
 			changed = True
 
 		elif window in self._open_uris:
@@ -505,31 +526,42 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	# uris
 
-	# notebook ids need to be precomputed at the start of closing window or quitting
-	# because trying to get a closed tab from the document causes a segfault
-	def _get_notebook_id_map(self, documents):
-		return {document : id(Gedit.Tab.get_from_document(document).get_parent()) for document in documents}
-
-	def _get_window_uris(self, documents, notebook_id_map):
+	def _get_window_info(self, window):
 		window_uris = []
-		cur_notebook_id = None
-		cur_notebook_uris = None
+		notebook_map = {}
+		# don't map document objects because document objects are transient
+		# whereas tab objects are more permanent?
+		tab_map = {}
 
-		for document in documents:
-			uri = self._get_document_uri(document)
+		for document in window.get_documents():
+			tab = Gedit.Tab.get_from_document(document)
+			notebook = tab.get_parent()
 
-			if uri:
-				next_notebook_id = notebook_id_map[document]
+			if notebook not in notebook_map:
+				notebook_map[notebook] = len(window_uris)
+				window_uris.append([])
 
-				# assuming documents are grouped and ordered by notebook
-				if next_notebook_id != cur_notebook_id:
-					cur_notebook_id = next_notebook_id
-					cur_notebook_uris = []
-					window_uris.append(cur_notebook_uris)
+			notebook_index = notebook_map[notebook]
+			notebook_uris = window_uris[notebook_index]
 
-				cur_notebook_uris.append(uri)
+			tab_index = len(notebook_uris)
+			notebook_uris.append(self._get_document_uri(document))
 
-		return window_uris
+			tab_map[id(tab)] = (notebook_index, tab_index)
+
+		return (window_uris, tab_map)
+
+	def _update_window_uris(self, window_uris, tab_map, tab):
+		tab_id = id(tab)
+		if tab_id in tab_map:
+			notebook_index, tab_index = tab_map[tab_id]
+			window_uris[notebook_index][tab_index] = self._get_document_uri(tab.get_document())
+		else:
+			Gedit.debug_plugin_message("tab id not in tab map?")
+
+	def _filter_window_uris(self, window_uris, tab_map=None):
+		window_uris = [[uri for uri in notebook_uris if uri] for notebook_uris in window_uris]
+		return [notebook_uris for notebook_uris in window_uris if notebook_uris]
 
 	def _get_document_uri(self, document):
 		source_file = document.get_file()
