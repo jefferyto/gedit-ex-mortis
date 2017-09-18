@@ -219,14 +219,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def _setup_tab(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
-		connect_handlers(self, tab.get_document().get_file(), ['notify::location'], 'source_file', window)
+		connect_handlers(self, tab, ['notify::name'], 'tab', window)
 
 		self._update_open_uris(window)
 
 	def _teardown_tab(self, window, tab):
 		Gedit.debug_plugin_message("%s %s", window, tab)
 
-		disconnect_handlers(self, tab.get_document().get_file())
+		disconnect_handlers(self, tab)
 
 		self._update_open_uris(window)
 
@@ -294,11 +294,10 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		self._update_open_uris(window)
 
-	def on_source_file_notify_location(self, source_file, pspec, window):
-		location = source_file.get_location()
-		uri = location.get_uri() if location else None
+	def on_tab_notify_name(self, tab, pspec, window):
+		uri = self._get_document_uri(tab.get_document())
 
-		Gedit.debug_plugin_message("%s", uri)
+		Gedit.debug_plugin_message("%s %s %s", window, tab, uri)
 
 		self._update_open_uris(window)
 
@@ -334,8 +333,6 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		Gedit.debug_plugin_message("%s", window)
 
 		self._closing_info[window] = self._get_window_info(window)
-
-		Gedit.debug_plugin_message("%s", self._closing_info[window])
 
 	def _cancel_closing_window(self, window):
 		Gedit.debug_plugin_message("%s", window)
@@ -553,9 +550,11 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 	def _update_window_uris(self, window_uris, tab_map, tab):
 		tab_id = id(tab)
+
 		if tab_id in tab_map:
 			notebook_index, tab_index = tab_map[tab_id]
 			window_uris[notebook_index][tab_index] = self._get_document_uri(tab.get_document())
+
 		else:
 			Gedit.debug_plugin_message("tab id not in tab map?")
 
