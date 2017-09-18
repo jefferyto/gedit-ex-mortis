@@ -189,7 +189,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# window setup
 
 	def _setup_window(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		connect_handlers(self, window, ['delete-event', 'tab-added', 'tab-removed', 'tabs-reordered'], 'window')
 
@@ -199,7 +199,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._update_open_uris(window)
 
 	def _teardown_window(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		disconnect_handlers(self, window)
 
@@ -217,14 +217,14 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	# tab setup
 
 	def _setup_tab(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		connect_handlers(self, tab, ['notify::name'], 'tab', window)
 
 		self._update_open_uris(window)
 
 	def _teardown_tab(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		disconnect_handlers(self, tab)
 
@@ -236,7 +236,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_app_window_added(self, app, window):
 		# preferences window also triggers this signal
 		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("%s", window)
+			Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 			self._cancel_quitting()
 
@@ -245,7 +245,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_app_window_removed(self, app, window):
 		# preferences window also triggers this signal
 		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("%s", window)
+			Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 			self._end_closing_window(window)
 
@@ -257,7 +257,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._end_quitting()
 
 	def on_window_delete_event(self, window, event):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		# closing the only window also quits the app
 		if len(self.app.get_main_windows()) == 1:
@@ -268,7 +268,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		return False
 
 	def on_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		self._cancel_closing_window(window)
 
@@ -277,7 +277,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._setup_tab(window, tab)
 
 	def on_window_tab_removed(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		self._update_closing_window(window, tab)
 
@@ -286,7 +286,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		self._teardown_tab(window, tab)
 
 	def on_window_tabs_reordered(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		self._cancel_closing_window(window)
 
@@ -297,7 +297,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 	def on_tab_notify_name(self, tab, pspec, window):
 		uri = self._get_document_uri(tab.get_document())
 
-		Gedit.debug_plugin_message("%s %s %s", window, tab, uri)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s, uri: %s", self._get_addr(window), self._get_addr(tab), uri)
 
 		self._update_open_uris(window)
 
@@ -330,12 +330,12 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		return hash(window) in self._closing_info
 
 	def _start_closing_window(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		self._closing_info[hash(window)] = self._get_window_info(window)
 
 	def _cancel_closing_window(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		if self._is_closing_window(window):
 			Gedit.debug_plugin_message("closing window started, cancelling")
@@ -343,13 +343,13 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			del self._closing_info[hash(window)]
 
 	def _update_closing_window(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		if self._is_closing_window(window):
 			self._update_window_uris(*self._closing_info[hash(window)], tab)
 
 	def _end_closing_window(self, window):
-		Gedit.debug_plugin_message("%s", window)
+		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
 
 		if self._is_closing_window(window):
 			uris = self._filter_window_uris(*self._closing_info[hash(window)])
@@ -405,7 +405,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 			self._quitting_info = None
 
 	def _update_quitting(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		if self._is_quitting():
 			window_hash = hash(window)
@@ -450,12 +450,12 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		window = self.app.get_active_window()
 
 		if window:
-			Gedit.debug_plugin_message("waiting for new tab in %s", window)
+			Gedit.debug_plugin_message("waiting for new tab in window %s", self._get_addr(window))
 			self._restore_window = window
 			self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
 
 	def on_restore_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("%s %s", window, tab)
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
 
 		if tab.get_document().is_untouched() and tab.get_state() is Gedit.TabState.STATE_NORMAL:
 			Gedit.debug_plugin_message("closing untouched tab")
@@ -590,3 +590,9 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		location = source_file.get_location() if source_file else None
 		uri = location.get_uri() if location else None
 		return uri
+
+
+	# misc
+
+	def _get_addr(self, obj):
+		return hex(hash(obj))
