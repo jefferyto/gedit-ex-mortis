@@ -174,10 +174,11 @@ class ExMortisAppActivatable(
 			)
 
 			hpaned = window.get_template_child(Gedit.Window, 'hpaned')
-
 			main_box = hpaned.get_parent()
+			num_children = len(main_box.get_children())
+
 			main_box.pack_start(info_bar, False, False, 0)
-			main_box.reorder_child(info_bar, 0)
+			main_box.reorder_child(info_bar, num_children - 1)
 
 			# must be done after the info bar is added to the window
 			info_bar.set_default_response(default_response_id)
