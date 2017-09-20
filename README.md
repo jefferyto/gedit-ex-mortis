@@ -22,11 +22,14 @@ This plugin requires gedit 3.
     *   For gedit 3.8 and later, copy `ex-mortis.plugin`.
 3.  Restart gedit, then enable the plugin in the **Plugins** tab in
     gedit's **Preferences** window.
+4.  Restart gedit again, preferably using **Quit** in the Application
+    menu or the File menu. This is necessary because the plugin cannot
+    reopen any windows that are open when the plugin was activated.
 
 ## Usage
 
 *   This plugin adds a new **Reopen Closed Window** menu item, following
-    **New Window** in either the app menu or the **File** menu.
+    **New Window** in either the Application menu or the File menu.
 
     This menu item will reopen the most recently closed window in the
     current session; if there are no closed windows in the current

@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
 from gi.repository import Gtk, Gedit
 
 GETTEXT_PACKAGE = 'gedit-ex-mortis'
@@ -66,7 +67,7 @@ class Existing(object):
 
 		hbox_content.pack_start(vbox, True, True, 0)
 
-		primary_text = _("If you close this window, it cannot be reopened. Restart gedit to fully enable Ex-Mortis.")
+		primary_text = _("This window cannot be reopened if closed. Restart gedit to fully enable Ex-Mortis.")
 		primary_markup = "<b>{}</b>".format(primary_text)
 
 		primary_label = Gtk.Label.new(primary_markup)
@@ -77,9 +78,9 @@ class Existing(object):
 		primary_label.set_selectable(True)
 
 		if is_app_menu:
-			secondary_text = _("If you have enabled \"Restore windows between sessions\" in Ex-Mortis' preferences, this window can be restored if you quit gedit by selecting Quit in the Application menu or in this message.")
+			secondary_text = _("To restore this window, enable \"Restore windows between sessions\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the Application menu or in this message.")
 		else:
-			secondary_text = _("If you have enabled \"Restore windows between sessions\" in Ex-Mortis' preferences, this window can be restored if you quit gedit by selecting Quit in the File menu or in this message.")
+			secondary_text = _("To restore this window, enable \"Restore windows between sessions\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the File menu or in this message.")
 		secondary_markup = "<small>{}</small>".format(secondary_text)
 
 		secondary_label = Gtk.Label.new(secondary_markup)
