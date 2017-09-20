@@ -23,8 +23,13 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gedit', '3.0')
 
+import gettext
 import os.path
-from gi.repository import GObject, GLib, Gtk, Gio, Gedit, PeasGtk
+from gi.repository import GObject, Gtk, Gio, Gedit, PeasGtk
+from .closing import Closing
+from .existing import Existing
+from .quitting import Quitting
+from .settings import Settings
 from .utils import connect_handlers, disconnect_handlers
 
 GETTEXT_PACKAGE = 'gedit-ex-mortis'
@@ -38,17 +43,12 @@ except:
 	_ = lambda s: s
 
 
-class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Configurable):
+class ExMortisAppActivatable(
+		GObject.Object, Gedit.AppActivatable,
+		Existing, Closing, Quitting, Settings):
 	__gtype_name__ = 'ExMortisAppActivatable'
 
 	app = GObject.property(type=Gedit.App)
-
-	SETTINGS_SCHEMA_ID = 'com.thingsthemselves.gedit.plugins.ex-mortis'
-
-	RESTORE_BETWEEN_SESSIONS = 'restore-between-sessions'
-
-	RESTORE_URIS = 'restore-uris'
-	RESTORE_URIS_GVARIANT_TYPE = 'aaas'
 
 
 	# gedit plugin api
@@ -62,7 +62,7 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		app = self.app
 
 		# reopen action
-		reopen_action = Gio.SimpleAction(name='reopen-closed-window')
+		reopen_action = Gio.SimpleAction.new('reopen-closed-window', None)
 		reopen_action.set_enabled(False)
 		connect_handlers(self, reopen_action, ['activate'], 'reopen')
 		app.add_action(reopen_action)
@@ -75,40 +75,49 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		# quit action
 		original_quit_action = app.lookup_action('quit')
-		custom_quit_action = Gio.SimpleAction(name='quit')
+		custom_quit_action = Gio.SimpleAction.new('quit', None)
 		connect_handlers(self, custom_quit_action, ['activate'], 'quit')
 		app.remove_action('quit')
 		app.add_action(custom_quit_action)
 
-		# settings
-		settings = self._get_settings()
-		if settings:
-			connect_handlers(self, settings, ['changed::' + self.RESTORE_BETWEEN_SESSIONS], 'settings')
-
 		# app
-		connect_handlers(self, app, ['window-added', 'window-removed', 'shutdown'], 'app')
+		connect_handlers(
+			self, app,
+			['window-added', 'window-removed', 'shutdown'],
+			'app'
+		)
 
-		self._open_uris = {}
-		self._closing_info = {}
-		self._closed_uris = []
-		self._quitting_info = None
-		self._restore_window = None
-		self._restore_handler = None
 		self._reopen_action = reopen_action
 		self._menu_ext = menu_ext
 		self._original_quit_action = original_quit_action
 		self._custom_quit_action = custom_quit_action
-		self._settings = settings
+
+		self.do_activate_existing()
+		self.do_activate_closing()
+		self.do_activate_quitting()
+		self.do_activate_settings()
+
+		# settings
+		settings = self.get_settings()
+
+		if settings:
+			connect_handlers(
+				self, settings,
+				[self.get_settings_signal_changed_restore_between_sessions()],
+				self.on_settings_changed_restore_between_sessions
+			)
 
 		# windows
 		windows = app.get_main_windows()
+
 		if windows:
 			# plugin activated during existing session
 			for window in windows:
-				self._setup_window(window)
-		elif self._should_restore_windows():
+				self.setup_window(window, True)
+
+		elif self.get_settings_restore_between_sessions():
 			# plugin activated during app startup
-			self._restore_windows()
+			self.restore_windows(self.get_settings_restore_uris())
 
 	def do_deactivate(self):
 		Gedit.debug_plugin_message("")
@@ -120,11 +129,12 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		# windows
 		for window in app.get_main_windows():
-			self._teardown_window(window)
+			self.teardown_window(window)
 
 		# settings
-		if self._settings:
-			disconnect_handlers(self, self._settings)
+		settings = self.get_settings()
+		if settings:
+			disconnect_handlers(self, settings)
 
 		# quit action
 		app.remove_action('quit')
@@ -137,31 +147,279 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 		# reopen action
 		app.remove_action('reopen-closed-window')
 
-		self._open_uris = None
-		self._closing_info = None
-		self._closed_uris = None
-		self._quitting_info = None
-		self._restore_window = None
-		self._restore_handler = None
 		self._reopen_action = None
 		self._menu_ext = None
 		self._original_quit_action = None
 		self._custom_quit_action = None
-		self._settings = None
+
+		self.do_deactivate_existing()
+		self.do_deactivate_closing()
+		self.do_deactivate_quitting()
+		self.do_deactivate_settings()
 
 
-	# settings ui
+	# window setup
+
+	def setup_window(self, window, is_existing=False):
+		Gedit.debug_plugin_message("Window: %s, is_existing: %s", hex(hash(window)), is_existing)
+
+		if is_existing:
+			info_bar, quit_response_id, default_response_id = self.create_existing_info_bar()
+
+			connect_handlers(
+				self, info_bar,
+				['response'],
+				'existing_window_info_bar',
+				window, quit_response_id
+			)
+
+			hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+
+			main_box = hpaned.get_parent()
+			main_box.pack_start(info_bar, False, False, 0)
+			main_box.reorder_child(info_bar, 0)
+
+			# must be done after the info bar is added to the window
+			info_bar.set_default_response(default_response_id)
+
+			info_bar.show()
+
+			self.add_existing(window, info_bar)
+
+		connect_handlers(
+			self, window,
+			['delete-event', 'tab-added', 'tab-removed', 'tabs-reordered'],
+			'window'
+		)
+
+		for document in window.get_documents():
+			self.setup_tab(window, Gedit.Tab.get_from_document(document))
+
+		self.update_and_save_opened(window)
+
+	def teardown_window(self, window):
+		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+		if self.is_existing(window):
+			info_bar = self.get_existing_info_bar(window)
+			disconnect_handlers(self, info_bar)
+			info_bar.destroy()
+
+			self.remove_existing(window)
+
+		disconnect_handlers(self, window)
+
+		self.teardown_restore_window(window)
+
+		for document in window.get_documents():
+			self.teardown_tab(window, Gedit.Tab.get_from_document(document))
+
+		self.update_and_save_opened(window)
+
+
+	# tab setup
+
+	def setup_tab(self, window, tab):
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+
+		connect_handlers(self, tab, ['notify::name'], 'tab', window)
+
+		self.update_and_save_opened(window)
+
+	def teardown_tab(self, window, tab):
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+
+		disconnect_handlers(self, tab)
+
+		self.update_and_save_opened(window)
+
+
+	# app signal handlers
+	# preferences window also triggers window-added / window-removed
+
+	def on_app_window_added(self, app, window):
+		if isinstance(window, Gedit.Window):
+			Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+			self.cancel_quitting()
+
+			self.setup_window(window)
+
+	def on_app_window_removed(self, app, window):
+		if isinstance(window, Gedit.Window):
+			Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+			if not self.is_existing(window):
+				self.end_closing(window)
+				self.update_reopen_action_enabled()
+
+			self.teardown_window(window)
+
+	def on_app_shutdown(self, app):
+		Gedit.debug_plugin_message("")
+
+		self.end_and_save_quitting()
+
+
+	# window signal handlers
+
+	def on_window_delete_event(self, window, event):
+		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+		# closing the only window also quits the app
+		if len(self.app.get_main_windows()) == 1:
+			self.start_quitting()
+
+		# this handler would not be called on an existing window anyway
+		# but for completeness sake...
+		if not self.is_existing(window):
+			self.start_closing(window)
+
+		return False
+
+	def on_window_tab_added(self, window, tab):
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+
+		if not self.is_existing(window):
+			self.cancel_closing(window)
+
+		self.cancel_quitting()
+
+		self.setup_tab(window, tab)
+
+	def on_window_tab_removed(self, window, tab):
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+
+		if not self.is_existing(window):
+			self.update_closing(window, tab)
+
+		self.update_quitting(window, tab)
+
+		self.teardown_tab(window, tab)
+
+	def on_window_tabs_reordered(self, window):
+		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+		if not self.is_existing(window):
+			self.cancel_closing(window)
+
+		self.cancel_quitting()
+
+		self.update_and_save_opened(window)
+
+
+	# tab signal handlers
+
+	def on_tab_notify_name(self, tab, pspec, window):
+		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+
+		self.update_and_save_opened(window)
+
+
+	# existing window signal handlers
+
+	def on_existing_window_info_bar_response(self, info_bar, response_id, window, quit_response_id):
+		Gedit.debug_plugin_message("Window: %s, Response id: %s", hex(hash(window)), response_id)
+
+		info_bar.hide()
+
+		if response_id == quit_response_id:
+			self.app.activate_action('quit')
+
+
+	# settings signal handlers
+
+	def on_settings_changed_restore_between_sessions(self, settings, prop):
+		is_enabled = self.get_settings_restore_between_sessions()
+
+		Gedit.debug_plugin_message("%s", is_enabled)
+
+		self.save_opened()
+
+
+	# action signal handlers
+
+	def on_reopen_activate(self, action, parameter):
+		Gedit.debug_plugin_message("")
+
+		self.reopen_closed()
+		self.update_reopen_action_enabled()
+
+	def on_quit_activate(self, action, parameter):
+		Gedit.debug_plugin_message("")
+
+		self.start_quitting()
+
+		for window in self.app.get_main_windows():
+			if not self.is_existing(window):
+				self.start_closing(window)
+
+		self.really_quit()
+
+
+	# closing helpers
+
+	def update_reopen_action_enabled(self):
+		is_enabled = self.has_closed()
+
+		Gedit.debug_plugin_message("%s", is_enabled)
+
+		self._reopen_action.set_enabled(is_enabled)
+
+
+	# quitting helpers
+
+	def update_and_save_opened(self, window):
+		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+
+		self.update_opened(window)
+		self.save_opened()
+
+	def save_opened(self):
+		Gedit.debug_plugin_message("")
+
+		window_uris_map = self.get_opened()
+		self.set_settings_restore_uris(window_uris_map)
+
+	def end_and_save_quitting(self):
+		Gedit.debug_plugin_message("")
+
+		window_uris_map = self.end_quitting()
+		self.set_settings_restore_uris(window_uris_map)
+
+	def really_quit(self):
+		Gedit.debug_plugin_message("")
+
+		self._original_quit_action.activate()
+
+
+class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable, Settings):
+	__gtype_name__ = 'ExMortisConfigurable'
 
 	def do_create_configure_widget(self):
 		Gedit.debug_plugin_message("")
 
-		settings = self._get_settings()
+		self.do_activate_settings()
+
+		settings = self.get_settings()
 
 		if settings:
 			widget = Gtk.CheckButton(_("Restore windows between sessions"))
-			connect_handlers(self, widget, ['toggled'], 'configure_check_button', settings)
-			connect_handlers(self, settings, ['changed::' + self.RESTORE_BETWEEN_SESSIONS], 'configure_settings', widget)
-			widget.set_active(settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS))
+
+			connect_handlers(
+				self, widget,
+				['toggled'],
+				self.on_configure_check_button_toggled_restore_between_sessions
+			)
+
+			connect_handlers(
+				self, settings,
+				[self.get_settings_signal_changed_restore_between_sessions()],
+				self.on_configure_settings_changed_restore_between_sessions,
+				widget
+			)
+
+			widget.set_active(self.get_settings_restore_between_sessions())
 
 		else:
 			widget = Gtk.Box()
@@ -171,428 +429,16 @@ class ExMortisAppActivatable(GObject.Object, Gedit.AppActivatable, PeasGtk.Confi
 
 		return widget
 
-	def on_configure_check_button_toggled(self, widget, settings):
-		should_restore = widget.get_active()
+	def on_configure_check_button_toggled_restore_between_sessions(self, check_button):
+		is_enabled = check_button.get_active()
 
-		Gedit.debug_plugin_message("%s", should_restore)
+		Gedit.debug_plugin_message("%s", is_enabled)
 
-		settings.set_boolean(self.RESTORE_BETWEEN_SESSIONS, should_restore)
+		self.set_settings_restore_between_sessions(is_enabled)
 
-	def on_configure_settings_changed_restore_between_sessions(self, settings, prop, widget):
-		should_restore = settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
+	def on_configure_settings_changed_restore_between_sessions(self, settings, prop, check_button):
+		is_enabled = self.get_settings_restore_between_sessions()
 
-		Gedit.debug_plugin_message("%s", should_restore)
+		Gedit.debug_plugin_message("%s", is_enabled)
 
-		widget.set_active(should_restore)
-
-
-	# window setup
-
-	def _setup_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		connect_handlers(self, window, ['delete-event', 'tab-added', 'tab-removed', 'tabs-reordered'], 'window')
-
-		for document in window.get_documents():
-			self._setup_tab(window, Gedit.Tab.get_from_document(document))
-
-		self._update_open_uris(window)
-
-	def _teardown_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		disconnect_handlers(self, window)
-
-		if window is self._restore_window:
-			window.disconnect(self._restore_handler)
-			self._restore_window = None
-			self._restore_handler = None
-
-		for document in window.get_documents():
-			self._teardown_tab(window, Gedit.Tab.get_from_document(document))
-
-		self._update_open_uris(window)
-
-
-	# tab setup
-
-	def _setup_tab(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		connect_handlers(self, tab, ['notify::name'], 'tab', window)
-
-		self._update_open_uris(window)
-
-	def _teardown_tab(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		disconnect_handlers(self, tab)
-
-		self._update_open_uris(window)
-
-
-	# signal handlers
-
-	def on_app_window_added(self, app, window):
-		# preferences window also triggers this signal
-		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-			self._cancel_quitting()
-
-			self._setup_window(window)
-
-	def on_app_window_removed(self, app, window):
-		# preferences window also triggers this signal
-		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-			self._end_closing_window(window)
-
-			self._teardown_window(window)
-
-	def on_app_shutdown(self, app):
-		Gedit.debug_plugin_message("")
-
-		self._end_quitting()
-
-	def on_window_delete_event(self, window, event):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		# closing the only window also quits the app
-		if len(self.app.get_main_windows()) == 1:
-			self._start_quitting()
-
-		self._start_closing_window(window)
-
-		return False
-
-	def on_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		self._cancel_closing_window(window)
-
-		self._cancel_quitting()
-
-		self._setup_tab(window, tab)
-
-	def on_window_tab_removed(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		self._update_closing_window(window, tab)
-
-		self._update_quitting(window, tab)
-
-		self._teardown_tab(window, tab)
-
-	def on_window_tabs_reordered(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		self._cancel_closing_window(window)
-
-		self._cancel_quitting()
-
-		self._update_open_uris(window)
-
-	def on_tab_notify_name(self, tab, pspec, window):
-		uri = self._get_document_uri(tab.get_document())
-
-		Gedit.debug_plugin_message("Window: %s, Tab: %s, uri: %s", self._get_addr(window), self._get_addr(tab), uri)
-
-		self._update_open_uris(window)
-
-	def on_settings_changed_restore_between_sessions(self, settings, prop):
-		should_restore = settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
-
-		Gedit.debug_plugin_message("%s", should_restore)
-
-		self._save_open_uris()
-
-	def on_reopen_activate(self, action, parameter):
-		Gedit.debug_plugin_message("")
-
-		self._reopen_closed_window()
-
-	def on_quit_activate(self, action, parameter):
-		Gedit.debug_plugin_message("")
-
-		self._start_quitting()
-
-		for window in self.app.get_main_windows():
-			self._start_closing_window(window)
-
-		self._original_quit_action.activate()
-
-
-	# closing window
-
-	def _is_closing_window(self, window):
-		return hash(window) in self._closing_info
-
-	def _start_closing_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		self._closing_info[hash(window)] = self._get_window_info(window)
-
-	def _cancel_closing_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		if self._is_closing_window(window):
-			Gedit.debug_plugin_message("closing window started, cancelling")
-
-			del self._closing_info[hash(window)]
-
-	def _update_closing_window(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		if self._is_closing_window(window):
-			self._update_window_uris(*self._closing_info[hash(window)], tab)
-
-	def _end_closing_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", self._get_addr(window))
-
-		if self._is_closing_window(window):
-			uris = self._filter_window_uris(*self._closing_info[hash(window)])
-
-			if uris:
-				Gedit.debug_plugin_message("window has reopenable files, caching")
-
-				self._closed_uris.append(uris)
-				self._reopen_action.set_enabled(True)
-
-			else:
-				Gedit.debug_plugin_message("window does not have reopenable files, ignoring")
-
-			del self._closing_info[hash(window)]
-
-		else:
-			Gedit.debug_plugin_message("end closing window without starting?")
-
-
-	# reopen window
-
-	def _reopen_closed_window(self):
-		Gedit.debug_plugin_message("")
-
-		closed_uris = self._closed_uris
-
-		if len(closed_uris) > 0:
-			Gedit.debug_plugin_message("have cached windows, reopening")
-
-			self._open_uris_in_window(closed_uris.pop())
-			self._reopen_action.set_enabled(len(closed_uris) > 0)
-
-		else:
-			Gedit.debug_plugin_message("do not have cached windows, how did we get here?")
-
-
-	# quitting
-
-	def _is_quitting(self):
-		return self._quitting_info is not None
-
-	def _start_quitting(self):
-		Gedit.debug_plugin_message("")
-
-		self._quitting_info = {hash(window) : self._get_window_info(window) for window in self.app.get_main_windows()}
-
-	def _cancel_quitting(self):
-		Gedit.debug_plugin_message("")
-
-		if self._is_quitting():
-			Gedit.debug_plugin_message("quitting started, cancelling")
-
-			self._quitting_info = None
-
-	def _update_quitting(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		if self._is_quitting():
-			window_hash = hash(window)
-			if window_hash in self._quitting_info:
-				self._update_window_uris(*self._quitting_info[window_hash], tab)
-
-			else:
-				Gedit.debug_plugin_message("quitting started but window is not tracked?")
-
-	def _end_quitting(self):
-		Gedit.debug_plugin_message("")
-
-		if self._is_quitting():
-			quitting_uris = {window_hash : self._filter_window_uris(*info) for window_hash, info in self._quitting_info.items()}
-
-			Gedit.debug_plugin_message("saving %d windows", len(quitting_uris))
-
-			self._set_restore_uris(quitting_uris)
-
-			self._quitting_info = None
-
-		else:
-			Gedit.debug_plugin_message("end quitting without starting?")
-
-
-	# restore windows
-
-	def _should_restore_windows(self):
-		settings = self._settings
-		return settings and settings.get_boolean(self.RESTORE_BETWEEN_SESSIONS)
-
-	def _restore_windows(self):
-		Gedit.debug_plugin_message("")
-
-		uris_list = self._get_restore_uris()
-
-		Gedit.debug_plugin_message("restoring %d windows", len(uris_list))
-
-		for uris in uris_list:
-			self._open_uris_in_window(uris)
-
-		window = self.app.get_active_window()
-
-		if window:
-			Gedit.debug_plugin_message("waiting for new tab in window %s", self._get_addr(window))
-			self._restore_window = window
-			self._restore_handler = window.connect('tab-added', self.on_restore_window_tab_added)
-
-	def on_restore_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", self._get_addr(window), self._get_addr(tab))
-
-		if tab.get_document().is_untouched() and tab.get_state() is Gedit.TabState.STATE_NORMAL:
-			Gedit.debug_plugin_message("closing untouched tab")
-
-			def close_tab():
-				window.close_tab(tab)
-				return False
-
-			GObject.idle_add(close_tab)
-
-		else:
-			Gedit.debug_plugin_message("new tab is not untouched")
-
-		window.disconnect(self._restore_handler)
-		self._restore_window = None
-		self._restore_handler = None
-
-
-	# saving open uris
-
-	def _update_open_uris(self, window):
-		window_hash = hash(window)
-		changed = False
-
-		if window in self.app.get_main_windows():
-			self._open_uris[window_hash] = self._filter_window_uris(*self._get_window_info(window))
-			changed = True
-
-		elif window_hash in self._open_uris:
-			del self._open_uris[window_hash]
-			changed = True
-
-		if changed:
-			self._save_open_uris()
-
-	def _save_open_uris(self):
-		self._set_restore_uris(self._open_uris)
-
-
-	# settings
-
-	def _get_settings(self):
-		schemas_path = os.path.join(BASE_PATH, 'schemas')
-
-		try:
-			schema_source = Gio.SettingsSchemaSource.new_from_directory(schemas_path, Gio.SettingsSchemaSource.get_default(), False)
-			schema = Gio.SettingsSchemaSource.lookup(schema_source, self.SETTINGS_SCHEMA_ID, False)
-			settings = Gio.Settings.new_full(schema, None, None) if schema else None
-
-		except:
-			Gedit.debug_plugin_message("could not load settings schema from %s", schemas_path)
-			settings = None
-
-		return settings
-
-	def _get_restore_uris(self):
-		settings = self._settings
-		return settings.get_value(self.RESTORE_URIS) if settings else None
-
-	def _set_restore_uris(self, uris_dict):
-		settings = self._settings
-
-		if settings:
-			value = [uris for uris in uris_dict.values() if uris] if self._should_restore_windows() else []
-			settings.set_value(self.RESTORE_URIS, GLib.Variant(self.RESTORE_URIS_GVARIANT_TYPE, value))
-
-
-	# uris
-
-	def _get_window_info(self, window):
-		window_uris = []
-		notebook_map = {}
-		# don't map document objects because document objects are transient
-		# whereas tab objects are more permanent?
-		tab_map = {}
-
-		for document in window.get_documents():
-			tab = Gedit.Tab.get_from_document(document)
-			notebook = tab.get_parent()
-
-			if notebook not in notebook_map:
-				notebook_map[notebook] = len(window_uris)
-				window_uris.append([])
-
-			notebook_index = notebook_map[notebook]
-			notebook_uris = window_uris[notebook_index]
-
-			tab_index = len(notebook_uris)
-			notebook_uris.append(self._get_document_uri(document))
-
-			tab_map[hash(tab)] = (notebook_index, tab_index)
-
-		return (window_uris, tab_map)
-
-	def _update_window_uris(self, window_uris, tab_map, tab):
-		tab_hash = hash(tab)
-
-		if tab_hash in tab_map:
-			notebook_index, tab_index = tab_map[tab_hash]
-			window_uris[notebook_index][tab_index] = self._get_document_uri(tab.get_document())
-
-		else:
-			Gedit.debug_plugin_message("tab id not in tab map?")
-
-	def _filter_window_uris(self, window_uris, tab_map=None):
-		window_uris = [[uri for uri in notebook_uris if uri] for notebook_uris in window_uris]
-		return [notebook_uris for notebook_uris in window_uris if notebook_uris]
-
-	def _open_uris_in_window(self, window_uris, window=None):
-		window_uris = self._filter_window_uris(window_uris)
-
-		if window_uris:
-			if not window:
-				window = Gedit.App.create_window(self.app, None)
-
-			window.show()
-
-			is_first_notebook = True
-
-			for notebook_uris in window_uris:
-				if not is_first_notebook:
-					window.activate_action('new-tab-group')
-
-				locations = [Gio.File.new_for_uri(uri) for uri in notebook_uris]
-				Gedit.commands_load_locations(window, locations, None, 0, 0)
-				is_first_notebook = False
-
-			window.present()
-
-	def _get_document_uri(self, document):
-		source_file = document.get_file()
-		location = source_file.get_location() if source_file else None
-		uri = location.get_uri() if location else None
-		return uri
-
-
-	# misc
-
-	def _get_addr(self, obj):
-		return hex(hash(obj))
+		check_button.set_active(is_enabled)
