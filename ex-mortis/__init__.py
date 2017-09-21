@@ -178,6 +178,8 @@ class ExMortisAppActivatable(
 			num_children = len(main_box.get_children())
 
 			main_box.pack_start(info_bar, False, False, 0)
+			# on DEs where there is a separate title bar, e.g. Unity, the header bar is a child element here
+			# other DEs, e.g. GNOME Shell, the header bar is... somewhere else?
 			main_box.reorder_child(info_bar, num_children - 1)
 
 			# must be done after the info bar is added to the window
