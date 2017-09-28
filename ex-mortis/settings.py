@@ -20,89 +20,178 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os.path
-from gi.repository import GLib, Gio, Gedit
+from gi.repository import GObject, Gio, Gedit
+from .utils import debug_str
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
+SCHEMAS_PATH = os.path.join(BASE_PATH, 'schemas')
 
 
-class Settings(object):
-	SETTINGS_SCHEMA_ID = 'com.thingsthemselves.gedit.plugins.ex-mortis'
+class ExMortisSettings(GObject.Object):
 
-	SETTINGS_RESTORE_BETWEEN_SESSIONS = 'restore-between-sessions'
+	__gtype_name__ = 'ExMortisSettings'
 
-	SETTINGS_RESTORE_URIS = 'restore-uris'
-	SETTINGS_RESTORE_URIS_GVARIANT_TYPE = 'aaas'
+	restore_between_sessions = GObject.Property(type=bool, default=False)
 
 
-	def do_activate_settings(self):
+	def __init__(self):
+		GObject.Object.__init__(self)
+
 		Gedit.debug_plugin_message("")
-
-		schemas_path = os.path.join(BASE_PATH, 'schemas')
 
 		try:
-			schema_source_default = Gio.SettingsSchemaSource.get_default()
 			schema_source = Gio.SettingsSchemaSource.new_from_directory(
-				schemas_path, schema_source_default, False
+				SCHEMAS_PATH,
+				Gio.SettingsSchemaSource.get_default(),
+				False
 			)
-			schema = Gio.SettingsSchemaSource.lookup(
-				schema_source, self.SETTINGS_SCHEMA_ID, False
-			)
-			settings = Gio.Settings.new_full(schema, None, None) if schema else None
 
 		except:
-			Gedit.debug_plugin_message("could not load settings schema from %s", schemas_path)
-			settings = None
+			Gedit.debug_plugin_message("could not load settings schema source from %s", SCHEMAS_PATH)
 
+			schema_source = None
+
+		settings = get_settings(
+			schema_source,
+			'com.thingsthemselves.gedit.plugins.ex-mortis',
+			'/com/thingsthemselves/gedit/plugins/ex-mortis/'
+		)
+
+		if settings:
+			settings.bind(
+				'restore-between-sessions',
+				self, 'restore_between_sessions',
+				Gio.SettingsBindFlags.DEFAULT
+			)
+
+		self._schema_source = schema_source
 		self._settings = settings
+		self._window_settings = {}
 
-	def do_deactivate_settings(self):
+		for window_id in self.window_ids:
+			self.init_window_settings(window_id)
+
+	def cleanup(self):
 		Gedit.debug_plugin_message("")
 
+		if self._settings:
+			self._settings.unbind(self, 'restore_between_sessions')
+
+		self._schema_source = None
 		self._settings = None
+		self._window_settings = None
 
 
-	# settings
+	@property
+	def can_save(self):
+		return bool(self._settings)
 
-	def get_settings(self):
-		Gedit.debug_plugin_message("")
-
-		return self._settings
-
-
-	# settings-specific getters/setters
-
-	def get_settings_restore_between_sessions(self):
+	@property
+	def window_ids(self):
 		settings = self._settings
-		return settings and settings.get_boolean(self.SETTINGS_RESTORE_BETWEEN_SESSIONS)
+		return settings['restore-windows'] if settings else None
 
-	def set_settings_restore_between_sessions(self, is_enabled):
+	@window_ids.setter
+	def window_ids(self, window_ids):
 		settings = self._settings
-
 		if settings:
-			settings.set_boolean(self.SETTINGS_RESTORE_BETWEEN_SESSIONS, is_enabled)
-
-	def get_settings_restore_uris(self):
-		settings = self._settings
-		return settings.get_value(self.SETTINGS_RESTORE_URIS) if settings else None
-
-	def set_settings_restore_uris(self, window_uris_map):
-		settings = self._settings
-
-		if settings:
-			value = []
-
-			if window_uris_map and self.get_settings_restore_between_sessions():
-				value = [
-					window_uris
-					for window_uris in window_uris_map.values()
-					if window_uris
-				]
-
-			gvariant_value = GLib.Variant(self.SETTINGS_RESTORE_URIS_GVARIANT_TYPE, value)
-			settings.set_value(self.SETTINGS_RESTORE_URIS, gvariant_value)
+			settings['restore-windows'] = window_ids
 
 
-	# settings-specific signal names
+	def add_window(self):
+		window_id = self.find_unused_window_id()
 
-	def get_settings_signal_changed_restore_between_sessions(self):
-		return 'changed::' + self.SETTINGS_RESTORE_BETWEEN_SESSIONS
+		self.init_window_settings(window_id)
+
+		window_ids = self.window_ids
+		window_ids.append(window_id)
+		self.window_ids = window_ids
+
+		Gedit.debug_plugin_message("added window_id=%s", window_id)
+
+		return window_id
+
+	def remove_window(self, window_id):
+		Gedit.debug_plugin_message("window_id=%s", window_id)
+
+		if window_id not in self._window_settings:
+			Gedit.debug_plugin_message("unknown window id")
+			return
+
+		self.reset_window_settings(window_id)
+
+		window_ids = self.window_ids
+		window_ids.remove(window_id)
+		self.window_ids = window_ids
+
+		del self._window_settings[window_id]
+
+	def find_unused_window_id(self):
+		window_ids = self.window_ids
+		window_id_map = {window_id : True for window_id in window_ids}
+		counter = 0
+
+		while True:
+			window_id = 'window' + str(counter)
+
+			if window_id not in window_id_map:
+				break
+
+			counter += 1
+
+		Gedit.debug_plugin_message("found window_id=%s", window_id)
+
+		return window_id
+
+	def init_window_settings(self, window_id):
+		Gedit.debug_plugin_message("%s", window_id)
+
+		if window_id in self._window_settings:
+			Gedit.debug_plugin_message("already init")
+			return
+
+		settings = get_settings(
+			self._schema_source,
+			'com.thingsthemselves.gedit.plugins.ex-mortis.restore-window',
+			'/com/thingsthemselves/gedit/plugins/ex-mortis/restore-windows/' + window_id + '/'
+		)
+
+		self._window_settings[window_id] = settings
+
+	def get_window_settings(self, window_id):
+		Gedit.debug_plugin_message("%s", window_id)
+
+		if window_id not in self._window_settings:
+			Gedit.debug_plugin_message("unknown window id")
+			return None
+
+		return self._window_settings[window_id]
+
+	def reset_window_settings(self, window_id):
+		Gedit.debug_plugin_message("%s", window_id)
+
+		if window_id not in self._window_settings:
+			Gedit.debug_plugin_message("unknown window id")
+			return
+
+		settings = self._window_settings[window_id]
+
+		for key in settings.keys():
+			settings.reset(key)
+
+
+def get_settings(schema_source, schema_id, settings_path):
+	Gedit.debug_plugin_message("schema_id=%s, settings_path=%s", schema_id, settings_path)
+
+	if not schema_source:
+		Gedit.debug_plugin_message("no schema source")
+		return None
+
+	schema = schema_source.lookup(schema_id, False)
+
+	if not schema:
+		Gedit.debug_plugin_message("could not lookup '%s' in schema source", schema_id)
+		return None
+
+	return Gio.Settings.new_full(schema, None, settings_path)
+

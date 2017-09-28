@@ -1,15 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis" path="/com/thingsthemselves/gedit/plugins/ex-mortis/">
-		<key name="restore-between-sessions" type="b">
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis" gettext-domain="gedit-ex-mortis">
+		<key type="b" name="restore-between-sessions">
 			<default>false</default>
 			<summary>Restore windows between sessions</summary>
-			<description>Whether ex-mortis should restore windows between sessions.</description>
+			<description>Whether ex-mortis should restore windows between sessions or not.</description>
 		</key>
-		<key name="restore-uris" type="aaas">
+		<key type="aaas" name="restore-uris">
 			<default>[]</default>
 			<summary>Restore URIs</summary>
 			<description>URIs (windows / tab groups / documents) to restore between sessions.</description>
+		</key>
+		<key type="as" name="restore-windows">
+			<default>[]</default>
+			<summary>Restore windows</summary>
+			<description>List of windows to restore between sessions</description>
+		</key>
+	</schema>
+
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis.restore-window" gettext-domain="gedit-ex-mortis">
+		<key type="aas" name="uris">
+			<default>[]</default>
+			<summary>Window URIs</summary>
+			<description>URIs of open documents, grouped by tab group.</description>
+		</key>
+		<key type="s" name="active-uri">
+			<default>''</default>
+			<summary>Active URI</summary>
+			<description>URI of the currently active document.</description>
+		</key>
+		<key type="ai" name="tab-group-widths">
+			<default>[]</default>
+			<summary>Tab group widths</summary>
+			<description>List of tab group widths</description>
+		</key>
+		<key type="i" name="width">
+			<default>0</default>
+			<summary>Window width</summary>
+			<description>Window width or 0 if not saved.</description>
+		</key>
+		<key type="i" name="height">
+			<default>0</default>
+			<summary>Window height</summary>
+			<description>Window height or 0 if not saved.</description>
+		</key>
+		<key type="b" name="maximized">
+			<default>false</default>
+			<summary>Window is maximized</summary>
+			<description>Whether the window is maximized or not.</description>
+		</key>
+		<key type="b" name="fullscreen">
+			<default>false</default>
+			<summary>Window is fullscreen</summary>
+			<description>Whether the window is fullscreen or not.</description>
+		</key>
+		<key type="s" name="side-panel-page-name">
+			<default>''</default>
+			<summary>Side panel page name</summary>
+			<description>Name of the currently visible side panel page.</description>
+		</key>
+		<key type="b" name="side-panel-visible">
+			<default>false</default>
+			<summary>Side panel visible</summary>
+			<description>Whether the side panel is visible or not.</description>
+		</key>
+		<key type="s" name="bottom-panel-page-name">
+			<default>''</default>
+			<summary>Bottom panel page name</summary>
+			<description>Name of the currently visible bottom panel page.</description>
+		</key>
+		<key type="b" name="bottom-panel-visible">
+			<default>false</default>
+			<summary>Bottom panel visible</summary>
+			<description>Whether the bottom panel is visible or not.</description>
 		</key>
 	</schema>
 </schemalist>

@@ -23,35 +23,35 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gedit', '3.0')
 
-import gettext
 import os.path
 from gi.repository import GObject, Gtk, Gio, Gedit, PeasGtk
-from .closing import Closing
-from .existing import Existing
-from .quitting import Quitting
-from .settings import Settings
-from .utils import connect_handlers, disconnect_handlers
+from .closingmixin import ClosingMixin
+from .existingmixin import ExistingMixin
+from .quittingmixin import QuittingMixin
+from .settings import ExMortisSettings
+from .windowmanager import ExMortisWindowManager
+from .utils import connect_handlers, disconnect_handlers, create_bindings, debug_str
 
-GETTEXT_PACKAGE = 'gedit-ex-mortis'
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
 LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
 
 try:
-	gettext.bindtextdomain(GETTEXT_PACKAGE, LOCALE_PATH)
-	_ = lambda s: gettext.dgettext(GETTEXT_PACKAGE, s);
+	import gettext
+	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
+	gettext.textdomain('gedit-ex-mortis')
+	_ = gettext.gettext
 except:
 	_ = lambda s: s
 
 
 class ExMortisAppActivatable(
-		GObject.Object, Gedit.AppActivatable,
-		Existing, Closing, Quitting, Settings):
+		ExistingMixin, ClosingMixin, QuittingMixin,
+		GObject.Object, Gedit.AppActivatable):
+
 	__gtype_name__ = 'ExMortisAppActivatable'
 
-	app = GObject.property(type=Gedit.App)
+	app = GObject.Property(type=Gedit.App)
 
-
-	# gedit plugin api
 
 	def __init__(self):
 		GObject.Object.__init__(self)
@@ -60,25 +60,8 @@ class ExMortisAppActivatable(
 		Gedit.debug_plugin_message("")
 
 		app = self.app
-
-		# reopen action
-		reopen_action = Gio.SimpleAction.new('reopen-closed-window', None)
-		reopen_action.set_enabled(False)
-		connect_handlers(self, reopen_action, ['activate'], 'reopen')
-		app.add_action(reopen_action)
-
-		# reopen menu item
-		app.set_accels_for_action('app.reopen-closed-window', ['<Primary><Shift>N'])
-		menu_ext = self.extend_menu('app-commands-section')
-		menu_item = Gio.MenuItem.new(_("Reopen Closed _Window"), 'app.reopen-closed-window')
-		menu_ext.append_menu_item(menu_item)
-
-		# quit action
-		original_quit_action = app.lookup_action('quit')
-		custom_quit_action = Gio.SimpleAction.new('quit', None)
-		connect_handlers(self, custom_quit_action, ['activate'], 'quit')
-		app.remove_action('quit')
-		app.add_action(custom_quit_action)
+		window_manager = ExMortisWindowManager()
+		settings = ExMortisSettings()
 
 		# app
 		connect_handlers(
@@ -87,6 +70,56 @@ class ExMortisAppActivatable(
 			'app'
 		)
 
+		# window manager
+		connect_handlers(
+			self, window_manager,
+			['tab-added', 'tab-removed', 'tabs-reordered'],
+			'window_manager'
+		)
+
+		# settings
+		connect_handlers(
+			self, settings,
+			['notify::restore-between-sessions'],
+			'settings',
+			window_manager
+		)
+
+		# reopen action
+		reopen_action = Gio.SimpleAction.new('reopen-closed-window', None)
+		reopen_action.set_enabled(False)
+		connect_handlers(
+			self, reopen_action,
+			['activate'],
+			'reopen',
+			window_manager
+		)
+		app.add_action(reopen_action)
+
+		# reopen menu item
+		app.set_accels_for_action(
+			'app.reopen-closed-window', ['<Primary><Shift>N']
+		)
+		menu_ext = self.extend_menu('app-commands-section')
+		menu_item = Gio.MenuItem.new(
+			_("Reopen Closed _Window"), 'app.reopen-closed-window'
+		)
+		menu_ext.append_menu_item(menu_item)
+
+		# quit action
+		original_quit_action = app.lookup_action('quit')
+		custom_quit_action = Gio.SimpleAction.new('quit', None)
+		connect_handlers(
+			self, custom_quit_action,
+			['activate'],
+			'quit',
+			window_manager, settings
+		)
+		app.remove_action('quit')
+		app.add_action(custom_quit_action)
+
+		self._window_manager = window_manager
+		self._settings = settings
 		self._reopen_action = reopen_action
 		self._menu_ext = menu_ext
 		self._original_quit_action = original_quit_action
@@ -94,47 +127,31 @@ class ExMortisAppActivatable(
 
 		self.do_activate_existing()
 		self.do_activate_closing()
-		self.do_activate_quitting()
-		self.do_activate_settings()
-
-		# settings
-		settings = self.get_settings()
-
-		if settings:
-			connect_handlers(
-				self, settings,
-				[self.get_settings_signal_changed_restore_between_sessions()],
-				self.on_settings_changed_restore_between_sessions
-			)
+		self.do_activate_quitting(settings.restore_between_sessions)
 
 		# windows
 		windows = app.get_main_windows()
+
+		self.restore_windows(
+			window_manager, settings,
+			settings.restore_between_sessions and not windows
+		)
 
 		if windows:
 			# plugin activated during existing session
 			for window in windows:
 				self.setup_window(window, True)
 
-		elif self.get_settings_restore_between_sessions():
-			# plugin activated during app startup
-			self.restore_windows(self.get_settings_restore_uris())
-
 	def do_deactivate(self):
 		Gedit.debug_plugin_message("")
 
 		app = self.app
-
-		# app
-		disconnect_handlers(self, app)
+		window_manager = self._window_manager
+		settings = self._settings
 
 		# windows
 		for window in app.get_main_windows():
 			self.teardown_window(window)
-
-		# settings
-		settings = self.get_settings()
-		if settings:
-			disconnect_handlers(self, settings)
 
 		# quit action
 		app.remove_action('quit')
@@ -147,6 +164,20 @@ class ExMortisAppActivatable(
 		# reopen action
 		app.remove_action('reopen-closed-window')
 
+		# settings
+		disconnect_handlers(self, settings)
+
+		# window manager
+		disconnect_handlers(self, window_manager)
+
+		# app
+		disconnect_handlers(self, app)
+
+		window_manager.cleanup()
+		settings.cleanup()
+
+		self._window_manager = None
+		self._settings = None
 		self._reopen_action = None
 		self._menu_ext = None
 		self._original_quit_action = None
@@ -155,58 +186,49 @@ class ExMortisAppActivatable(
 		self.do_deactivate_existing()
 		self.do_deactivate_closing()
 		self.do_deactivate_quitting()
-		self.do_deactivate_settings()
 
 
 	# window setup
 
 	def setup_window(self, window, is_existing=False):
-		Gedit.debug_plugin_message("Window: %s, is_existing: %s", hex(hash(window)), is_existing)
+		Gedit.debug_plugin_message("%s, is_existing=%s", debug_str(window), is_existing)
+
+		window_manager = self._window_manager
+		settings = self._settings
 
 		if is_existing:
-			info_bar, quit_response_id, default_response_id = self.create_existing_info_bar()
+			info_bar, quit_response_id = self.add_existing(window)
 
 			connect_handlers(
 				self, info_bar,
 				['response'],
 				'existing_window_info_bar',
-				window, quit_response_id
+				quit_response_id
 			)
 
-			hpaned = window.get_template_child(Gedit.Window, 'hpaned')
-			main_box = hpaned.get_parent()
-			num_children = len(main_box.get_children())
-
-			main_box.pack_start(info_bar, False, False, 0)
-			# on DEs where there is a separate title bar, e.g. Unity, the header bar is a child element here
-			# other DEs, e.g. GNOME Shell, the header bar is... somewhere else?
-			main_box.reorder_child(info_bar, num_children - 1)
-
-			# must be done after the info bar is added to the window
-			info_bar.set_default_response(default_response_id)
-
-			info_bar.show()
-
-			self.add_existing(window, info_bar)
+			self.show_existing_info_bar(window)
 
 		connect_handlers(
 			self, window,
-			['delete-event', 'tab-added', 'tab-removed', 'tabs-reordered'],
-			'window'
+			['delete-event'],
+			'window',
+			window_manager,
+			settings
 		)
 
-		for document in window.get_documents():
-			self.setup_tab(window, Gedit.Tab.get_from_document(document))
+		window_manager.track_window(window)
 
-		self.update_and_save_opened(window)
+		self.bind_window_settings(window_manager, settings, window)
 
 	def teardown_window(self, window):
-		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+		Gedit.debug_plugin_message("%s", debug_str(window))
+
+		window_manager = self._window_manager
+		settings = self._settings
 
 		if self.is_existing(window):
 			info_bar = self.get_existing_info_bar(window)
 			disconnect_handlers(self, info_bar)
-			info_bar.destroy()
 
 			self.remove_existing(window)
 
@@ -214,43 +236,83 @@ class ExMortisAppActivatable(
 
 		self.teardown_restore_window(window)
 
-		for document in window.get_documents():
-			self.teardown_tab(window, Gedit.Tab.get_from_document(document))
+		self.unbind_window_settings(window_manager, settings, window)
 
-		self.update_and_save_opened(window)
-
-
-	# tab setup
-
-	def setup_tab(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
-
-		connect_handlers(self, tab, ['notify::name'], 'tab', window)
-
-		self.update_and_save_opened(window)
-
-	def teardown_tab(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
-
-		disconnect_handlers(self, tab)
-
-		self.update_and_save_opened(window)
+		window_manager.untrack_window(window)
 
 
-	# app signal handlers
-	# preferences window also triggers window-added / window-removed
+	# start closing / quitting
+
+	def on_window_delete_event(self, window, event, window_manager, settings):
+		Gedit.debug_plugin_message("%s", debug_str(window))
+
+		# closing the only window also quits the app
+		if (settings.restore_between_sessions
+				and len(self.app.get_main_windows())) == 1:
+			self.start_quitting(window_manager)
+
+		# this handler would not be called on an existing window anyway
+		# but for completeness sake...
+		if not self.is_existing(window):
+			self.start_closing(window_manager, window)
+
+		return False
+
+	def on_quit_activate(self, action, parameter, window_manager, settings):
+		Gedit.debug_plugin_message("")
+
+		try:
+			if settings.restore_between_sessions:
+				self.start_quitting(window_manager)
+
+			for window in self.app.get_main_windows():
+				if not self.is_existing(window):
+					self.start_closing(window_manager, window)
+
+		finally:
+			self.really_quit()
+
+
+	# update and cancel closing / quitting
+
+	def on_window_manager_tab_removed(self, window_manager, window, tab):
+		Gedit.debug_plugin_message("%s, %s", debug_str(window), debug_str(tab))
+
+		if not self.is_existing(window):
+			self.update_closing(window, tab)
+
+		self.update_quitting(window, tab)
+
+	def on_window_manager_tab_added(self, window_manager, window, tab):
+		Gedit.debug_plugin_message("%s, %s", debug_str(window), debug_str(tab))
+
+		if not self.is_existing(window):
+			self.cancel_closing(window)
+
+		self.cancel_quitting()
+
+	def on_window_manager_tabs_reordered(self, window_manager, window):
+		Gedit.debug_plugin_message("%s", debug_str(window))
+
+		if not self.is_existing(window):
+			self.cancel_closing(window)
+
+		self.cancel_quitting()
 
 	def on_app_window_added(self, app, window):
 		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+			Gedit.debug_plugin_message("%s", debug_str(window))
 
 			self.cancel_quitting()
 
 			self.setup_window(window)
 
+
+	# end closing / quitting
+
 	def on_app_window_removed(self, app, window):
 		if isinstance(window, Gedit.Window):
-			Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+			Gedit.debug_plugin_message("%s", debug_str(window))
 
 			if not self.is_existing(window):
 				self.end_closing(window)
@@ -261,68 +323,35 @@ class ExMortisAppActivatable(
 	def on_app_shutdown(self, app):
 		Gedit.debug_plugin_message("")
 
-		self.end_and_save_quitting()
+		self.end_quitting(self._settings)
 
 
-	# window signal handlers
+	# toggled restore between sessions setting
 
-	def on_window_delete_event(self, window, event):
-		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
+	def on_settings_notify_restore_between_sessions(self, settings, pspec, window_manager):
+		restore_between_sessions = settings.restore_between_sessions
 
-		# closing the only window also quits the app
-		if len(self.app.get_main_windows()) == 1:
-			self.start_quitting()
+		Gedit.debug_plugin_message("restore-between-sessions=%s", restore_between_sessions)
 
-		# this handler would not be called on an existing window anyway
-		# but for completeness sake...
-		if not self.is_existing(window):
-			self.start_closing(window)
-
-		return False
-
-	def on_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
-
-		if not self.is_existing(window):
-			self.cancel_closing(window)
-
-		self.cancel_quitting()
-
-		self.setup_tab(window, tab)
-
-	def on_window_tab_removed(self, window, tab):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
-
-		if not self.is_existing(window):
-			self.update_closing(window, tab)
-
-		self.update_quitting(window, tab)
-
-		self.teardown_tab(window, tab)
-
-	def on_window_tabs_reordered(self, window):
-		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
-
-		if not self.is_existing(window):
-			self.cancel_closing(window)
-
-		self.cancel_quitting()
-
-		self.update_and_save_opened(window)
+		if restore_between_sessions:
+			self.start_saving_window_states(window_manager, settings)
+		else:
+			self.stop_saving_window_states(window_manager, settings)
 
 
-	# tab signal handlers
+	# reopen closed window
 
-	def on_tab_notify_name(self, tab, pspec, window):
-		Gedit.debug_plugin_message("Window: %s, Tab: %s", hex(hash(window)), hex(hash(tab)))
+	def on_reopen_activate(self, action, parameter, window_manager):
+		Gedit.debug_plugin_message("")
 
-		self.update_and_save_opened(window)
+		self.reopen_closed(window_manager)
+		self.update_reopen_action_enabled()
 
 
-	# existing window signal handlers
+	# existing window info bar response
 
-	def on_existing_window_info_bar_response(self, info_bar, response_id, window, quit_response_id):
-		Gedit.debug_plugin_message("Window: %s, Response id: %s", hex(hash(window)), response_id)
+	def on_existing_window_info_bar_response(self, info_bar, response_id, quit_response_id):
+		Gedit.debug_plugin_message("response_id=%s", response_id)
 
 		info_bar.hide()
 
@@ -330,65 +359,14 @@ class ExMortisAppActivatable(
 			self.app.activate_action('quit')
 
 
-	# settings signal handlers
-
-	def on_settings_changed_restore_between_sessions(self, settings, prop):
-		is_enabled = self.get_settings_restore_between_sessions()
-
-		Gedit.debug_plugin_message("%s", is_enabled)
-
-		self.save_opened()
-
-
-	# action signal handlers
-
-	def on_reopen_activate(self, action, parameter):
-		Gedit.debug_plugin_message("")
-
-		self.reopen_closed()
-		self.update_reopen_action_enabled()
-
-	def on_quit_activate(self, action, parameter):
-		Gedit.debug_plugin_message("")
-
-		self.start_quitting()
-
-		for window in self.app.get_main_windows():
-			if not self.is_existing(window):
-				self.start_closing(window)
-
-		self.really_quit()
-
-
-	# closing helpers
+	# helpers
 
 	def update_reopen_action_enabled(self):
-		is_enabled = self.has_closed()
+		can_reopen = self.can_reopen()
 
-		Gedit.debug_plugin_message("%s", is_enabled)
+		Gedit.debug_plugin_message("%s", can_reopen)
 
-		self._reopen_action.set_enabled(is_enabled)
-
-
-	# quitting helpers
-
-	def update_and_save_opened(self, window):
-		Gedit.debug_plugin_message("Window: %s", hex(hash(window)))
-
-		self.update_opened(window)
-		self.save_opened()
-
-	def save_opened(self):
-		Gedit.debug_plugin_message("")
-
-		window_uris_map = self.get_opened()
-		self.set_settings_restore_uris(window_uris_map)
-
-	def end_and_save_quitting(self):
-		Gedit.debug_plugin_message("")
-
-		window_uris_map = self.end_quitting()
-		self.set_settings_restore_uris(window_uris_map)
+		self._reopen_action.set_enabled(can_reopen)
 
 	def really_quit(self):
 		Gedit.debug_plugin_message("")
@@ -396,52 +374,35 @@ class ExMortisAppActivatable(
 		self._original_quit_action.activate()
 
 
-class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable, Settings):
+class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
+
 	__gtype_name__ = 'ExMortisConfigurable'
 
 	def do_create_configure_widget(self):
 		Gedit.debug_plugin_message("")
 
-		self.do_activate_settings()
+		settings = ExMortisSettings()
 
-		settings = self.get_settings()
-
-		if settings:
-			widget = Gtk.CheckButton(_("Restore windows between sessions"))
-
-			connect_handlers(
-				self, widget,
-				['toggled'],
-				self.on_configure_check_button_toggled_restore_between_sessions
+		if settings.can_save:
+			widget = Gtk.CheckButton.new_with_label(
+				_("Restore windows between sessions")
 			)
 
-			connect_handlers(
-				self, settings,
-				[self.get_settings_signal_changed_restore_between_sessions()],
-				self.on_configure_settings_changed_restore_between_sessions,
-				widget
+			create_bindings(
+				self, settings, widget,
+				{'restore_between_sessions': 'active'},
+				GObject.BindingFlags.BIDIRECTIONAL
 			)
 
-			widget.set_active(self.get_settings_restore_between_sessions())
+			widget.set_active(settings.restore_between_sessions)
 
 		else:
 			widget = Gtk.Box()
-			widget.add(Gtk.Label(_("Could not load settings schema")))
+			widget.add(Gtk.Label.new(_("Could not load settings schema")))
 
 		widget.set_border_width(5)
 
+		widget._settings = settings
+
 		return widget
 
-	def on_configure_check_button_toggled_restore_between_sessions(self, check_button):
-		is_enabled = check_button.get_active()
-
-		Gedit.debug_plugin_message("%s", is_enabled)
-
-		self.set_settings_restore_between_sessions(is_enabled)
-
-	def on_configure_settings_changed_restore_between_sessions(self, settings, prop, check_button):
-		is_enabled = self.get_settings_restore_between_sessions()
-
-		Gedit.debug_plugin_message("%s", is_enabled)
-
-		check_button.set_active(is_enabled)
