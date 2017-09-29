@@ -69,6 +69,11 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
+	def active_tab_changed(self, window, tab):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
+
+	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
 	def tab_updated(self, window, tab):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
@@ -95,6 +100,7 @@ class ExMortisWindowManager(GObject.Object):
 				'tab-added',
 				'tab-removed',
 				'tabs-reordered',
+				'active-tab-changed',
 				'size-allocate',
 				'window-state-event',
 			],
@@ -244,6 +250,8 @@ class ExMortisWindowManager(GObject.Object):
 
 		window.present()
 
+		return window
+
 
 	# signal handlers
 
@@ -275,11 +283,19 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.emit('tabs-reordered', window)
 
+	def on_window_active_tab_changed(self, window, tab, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
+
+		state.save_active_uri(window)
+
+		self.emit('active-tab-changed', window, tab)
+
 	def on_tab_notify_name(self, tab, pspec, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
 
-		state.update_uri_from_tab(tab)
+		state.update_uri_from_tab(window, tab)
 
 		self.emit('tab-updated', window, tab)
 
@@ -342,6 +358,8 @@ class ExMortisWindowState(GObject.Object):
 
 	__gtype_name__ = 'ExMortisWindowState'
 
+	active_uri = GObject.Property(type=str, default='')
+
 	width = GObject.Property(type=int, default=0)
 
 	height = GObject.Property(type=int, default=0)
@@ -365,6 +383,7 @@ class ExMortisWindowState(GObject.Object):
 		self._uris = []
 		self._filtered_uris = []
 		self._tab_map = {}
+		self._active_tab = None
 
 
 	# class methods
@@ -378,6 +397,8 @@ class ExMortisWindowState(GObject.Object):
 
 		clone.uris = source.uris
 		clone.tab_map = source.tab_map
+
+		clone._active_tab = source._active_tab
 
 		return clone
 
@@ -429,6 +450,7 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		self.save_uris(window, True)
+		self.save_active_uri(window)
 		self.save_size(window)
 		self.save_window_state(window)
 		self.save_side_panel_page_name(window)
@@ -441,6 +463,7 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.prefix() + "%s, skip_size=%s", debug_str(window), skip_size)
 
 		self.apply_uris(window)
+		self.apply_active_uri(window)
 		if not skip_size:
 			self.apply_size(window)
 		self.apply_window_state(window)
@@ -488,13 +511,30 @@ class ExMortisWindowState(GObject.Object):
 
 			self.emit('uris-changed')
 
-	def update_uri_from_tab(self, tab, forget_tab=False):
+	def update_uri_from_tab(self, window, tab, forget_tab=False):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s, forget_tab=%s", debug_str(tab), forget_tab)
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s, forget_tab=%s", debug_str(window), debug_str(tab), forget_tab)
+
+		# active uri
+
+		if tab is self._active_tab:
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "active tab")
+
+			self.save_active_uri(window, tab)
+
+			if forget_tab:
+				self._active_tab = None
+
+		else:
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "not active tab")
+
+		# uris
 
 		if tab not in self._tab_map:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "tab not in tab map")
+				Gedit.debug_plugin_message(log.prefix() + "not in tab map")
 			return
 
 		notebook_index, tab_index = self._tab_map[tab]
@@ -538,6 +578,49 @@ class ExMortisWindowState(GObject.Object):
 				Gedit.commands_load_locations(window, locations, None, 0, 0)
 
 				create_notebook = True
+
+
+	# window active uri
+
+	def save_active_uri(self, window, active_tab=None):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(active_tab))
+
+		if active_tab is None:
+			active_tab = window.get_active_tab()
+
+		uri = get_tab_uri(active_tab) if active_tab else ''
+		active_uri = uri if uri else ''
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "saving active_uri=%s", active_uri)
+
+		self.active_uri = active_uri
+		self._active_tab = active_tab
+
+	def apply_active_uri(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		active_uri = self.active_uri
+
+		if not active_uri:
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "no active uri")
+			return
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "applying active_uri=%s", active_uri)
+
+		location = Gio.File.new_for_uri(active_uri)
+		tab = window.get_tab_from_location(location)
+
+		if not tab:
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not find tab for active uri")
+			return
+
+		window.set_active_tab(tab)
 
 
 	# window size

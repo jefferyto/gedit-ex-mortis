@@ -215,7 +215,7 @@ class QuittingMixin(object):
 			return
 
 		state = self._quitting[window]
-		state.update_uri_from_tab(tab, True)
+		state.update_uri_from_tab(window, tab, True)
 
 	def end_quitting(self, settings, do_save):
 		if log.query(log.INFO):
@@ -259,6 +259,7 @@ class QuittingMixin(object):
 			Gedit.debug_plugin_message(log.prefix() + "do_restore=%s", do_restore)
 
 		states = []
+		windows = {}
 
 		for window_id in settings.window_ids:
 			if do_restore:
@@ -287,11 +288,13 @@ class QuittingMixin(object):
 				Gedit.debug_plugin_message(log.prefix() + "restoring %d windows", len(states))
 
 			for state in states:
-				window_manager.open_new_window_with_window_state(state)
+				window = window_manager.open_new_window_with_window_state(state)
+				windows[window] = state
 
 			if states:
 				app = Gedit.App.get_default()
 				window = app.get_active_window()
+				state = windows[window] if window in windows else None
 
 				if window:
 					if log.query(log.INFO):
@@ -299,14 +302,14 @@ class QuittingMixin(object):
 
 					self._restore_window = window
 					self._restore_handler_id = window.connect(
-						'tab-added', self.on_restore_window_tab_added
+						'tab-added', self.on_restore_window_tab_added, state
 					)
 
 		else:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.prefix() + "not restoring windows")
 
-	def on_restore_window_tab_added(self, window, tab):
+	def on_restore_window_tab_added(self, window, tab, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
 
@@ -317,6 +320,10 @@ class QuittingMixin(object):
 
 			def close_tab():
 				window.close_tab(tab)
+
+				if state:
+					state.apply_active_uri(window)
+
 				return False
 
 			GLib.idle_add(close_tab)
