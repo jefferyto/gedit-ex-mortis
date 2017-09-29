@@ -21,12 +21,14 @@
 
 from gi.repository import GLib, Gio, Gedit
 from .utils import connect_handlers, disconnect_handlers, debug_str
+from . import log
 
 
 class QuittingMixin(object):
 
 	def do_activate_quitting(self, is_saving_window_states):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "is_saving_window_states=%s", is_saving_window_states)
 
 		self._window_ids = {} if is_saving_window_states else None
 		self._quitting = None
@@ -34,7 +36,8 @@ class QuittingMixin(object):
 		self._restore_handler_id = None
 
 	def do_deactivate_quitting(self):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix())
 
 		self._window_ids = None
 		self._quitting = None
@@ -48,10 +51,12 @@ class QuittingMixin(object):
 		return self._window_ids is not None
 
 	def start_saving_window_states(self, window_manager, settings):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix())
 
 		if self.is_saving_window_states():
-			Gedit.debug_plugin_message("already saving window states")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "already saving window states")
 			return
 
 		self._window_ids = {}
@@ -62,10 +67,12 @@ class QuittingMixin(object):
 			self.bind_window_settings(window_manager, settings, window)
 
 	def stop_saving_window_states(self, window_manager, settings):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix())
 
 		if not self.is_saving_window_states():
-			Gedit.debug_plugin_message("not saving window states")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "not saving window states")
 			return
 
 		app = Gedit.App.get_default()
@@ -76,16 +83,19 @@ class QuittingMixin(object):
 		self._window_ids = None
 
 	def bind_window_settings(self, window_manager, settings, window):
-		Gedit.debug_plugin_message("%s", debug_str(window))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		if not self.is_saving_window_states():
-			Gedit.debug_plugin_message("not saving window states")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "not saving window states")
 			return
 
 		state = window_manager.get_window_state(window)
 
 		if not state:
-			Gedit.debug_plugin_message("could not get window state")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not get window state")
 			return
 
 		window_id = settings.add_window()
@@ -94,7 +104,8 @@ class QuittingMixin(object):
 		window_settings = settings.get_window_settings(window_id)
 
 		if not window_settings:
-			Gedit.debug_plugin_message("could not get window settings")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not get window settings")
 			return
 
 		for param in state.list_properties(): # actually a class method
@@ -109,27 +120,32 @@ class QuittingMixin(object):
 		window_manager.save_to_window_state(window)
 
 	def unbind_window_settings(self, window_manager, settings, window):
-		Gedit.debug_plugin_message("%s", debug_str(window))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		if not self.is_saving_window_states():
-			Gedit.debug_plugin_message("not saving window states")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "not saving window states")
 			return
 
 		state = window_manager.get_window_state(window)
 
 		if not state:
-			Gedit.debug_plugin_message("could not get window state")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not get window state")
 			return
 
 		if window not in self._window_ids:
-			Gedit.debug_plugin_message("could not find window id")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not find window id")
 			return
 
 		window_id = self._window_ids[window]
 		window_settings = settings.get_window_settings(window_id)
 
 		if not window_settings:
-			Gedit.debug_plugin_message("could not get window settings")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "could not get window settings")
 			return
 
 		for param in state.list_properties(): # actually a class method
@@ -151,10 +167,12 @@ class QuittingMixin(object):
 		return self._quitting is not None
 
 	def start_quitting(self, window_manager):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix())
 
 		if self.is_quitting():
-			Gedit.debug_plugin_message("already started quitting")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "already started quitting")
 
 		app = Gedit.App.get_default()
 
@@ -163,52 +181,73 @@ class QuittingMixin(object):
 			for window in app.get_main_windows()
 		}
 
+	# can be called when not quitting
 	def cancel_quitting(self):
-		Gedit.debug_plugin_message("")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix())
 
 		if not self.is_quitting():
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.prefix() + "not quitting")
 			return
 
-		Gedit.debug_plugin_message("started quitting, cancelling")
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "cancelling quitting")
 
 		self._quitting = None
 
+	# can be called when not quitting
 	def update_quitting(self, window, tab):
-		Gedit.debug_plugin_message("%s, %s", debug_str(window), debug_str(tab))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
 
 		if not self.is_quitting():
-			Gedit.debug_plugin_message("not quitting")
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.prefix() + "not quitting")
 			return
 
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "updating quitting")
+
 		if window not in self._quitting:
-			Gedit.debug_plugin_message("unknown window")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "unknown window")
 			return
 
 		state = self._quitting[window]
 		state.update_uri_from_tab(tab, True)
 
-	def end_quitting(self, settings):
-		Gedit.debug_plugin_message("")
+	def end_quitting(self, settings, do_save):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "do_save=%s", do_save)
 
 		if not self.is_quitting():
-			Gedit.debug_plugin_message("end quitting without starting")
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.prefix() + "end quitting without starting")
 			return
 
-		for window, state in self._quitting.items():
-			if state.filtered_uris:
-				window_id = settings.add_window()
-				window_settings = settings.get_window_settings(window_id)
+		if do_save:
+			for window, state in self._quitting.items():
+				if state.filtered_uris:
+					window_id = settings.add_window()
+					window_settings = settings.get_window_settings(window_id)
 
-				if not window_settings:
-					Gedit.debug_plugin_message("could not get window settings")
-					continue
+					if not window_settings:
+						if log.query(log.WARNING):
+							Gedit.debug_plugin_message(log.prefix() + "could not get window settings")
+						continue
 
-				for param in state.list_properties(): # actually a class method
-					window_settings[param.name] = state.get_property(param.name)
+					for param in state.list_properties(): # actually a class method
+						window_settings[param.name] = state.get_property(param.name)
 
-				window_settings['uris'] = state.filtered_uris
+					window_settings['uris'] = state.filtered_uris
 
-		Gedit.debug_plugin_message("saving %d windows", len(settings.window_ids))
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.prefix() + "saving %d windows", len(settings.window_ids))
+
+		else:
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.prefix() + "not saving windows")
 
 		self._quitting = None
 
@@ -216,7 +255,8 @@ class QuittingMixin(object):
 	# restoring
 
 	def restore_windows(self, window_manager, settings, do_restore):
-		Gedit.debug_plugin_message("do_restore=%s", do_restore)
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "do_restore=%s", do_restore)
 
 		states = []
 
@@ -226,7 +266,8 @@ class QuittingMixin(object):
 				window_settings = settings.get_window_settings(window_id)
 
 				if not window_settings:
-					Gedit.debug_plugin_message("could not get window settings")
+					if log.query(log.WARNING):
+						Gedit.debug_plugin_message(log.prefix() + "could not get window settings")
 					continue
 
 				for param in state.list_properties(): # actually a class method
@@ -236,33 +277,43 @@ class QuittingMixin(object):
 
 				state.uris = window_settings['uris']
 
-				states.append(state)
+				if state.filtered_uris:
+					states.append(state)
 
 			settings.remove_window(window_id)
 
-		if states:
-			Gedit.debug_plugin_message("restoring %d windows", len(states))
+		if do_restore:
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.prefix() + "restoring %d windows", len(states))
 
 			for state in states:
 				window_manager.open_new_window_with_window_state(state)
 
-			app = Gedit.App.get_default()
-			window = app.get_active_window()
+			if states:
+				app = Gedit.App.get_default()
+				window = app.get_active_window()
 
-			if window:
-				Gedit.debug_plugin_message("waiting for new tab in %s", debug_str(window))
+				if window:
+					if log.query(log.INFO):
+						Gedit.debug_plugin_message(log.prefix() + "waiting for new tab in %s", debug_str(window))
 
-				self._restore_window = window
-				self._restore_handler_id = window.connect(
-					'tab-added', self.on_restore_window_tab_added
-				)
+					self._restore_window = window
+					self._restore_handler_id = window.connect(
+						'tab-added', self.on_restore_window_tab_added
+					)
+
+		else:
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.prefix() + "not restoring windows")
 
 	def on_restore_window_tab_added(self, window, tab):
-		Gedit.debug_plugin_message("%s, %s", debug_str(window), debug_str(tab))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s, %s", debug_str(window), debug_str(tab))
 
 		if (tab.get_document().is_untouched()
 				and tab.get_state() is Gedit.TabState.STATE_NORMAL):
-			Gedit.debug_plugin_message("closing untouched tab")
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "closing untouched tab")
 
 			def close_tab():
 				window.close_tab(tab)
@@ -271,15 +322,29 @@ class QuittingMixin(object):
 			GLib.idle_add(close_tab)
 
 		else:
-			Gedit.debug_plugin_message("new tab is not untouched")
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "new tab is not untouched")
 
 		self.teardown_restore_window(window)
 
 	def teardown_restore_window(self, window):
-		Gedit.debug_plugin_message("%s", debug_str(window))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		if self._restore_window and window is self._restore_window:
-			window.disconnect(self._restore_handler_id)
-			self._restore_window = None
-			self._restore_handler_id = None
+		if not self._restore_window:
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "no restore window or restore window already torn down")
+			return
+
+		if window is not self._restore_window:
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.prefix() + "not restore window")
+			return
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "tearing down restore window")
+
+		window.disconnect(self._restore_handler_id)
+		self._restore_window = None
+		self._restore_handler_id = None
 
