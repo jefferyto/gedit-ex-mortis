@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from gi.repository import GLib
 
 
@@ -30,7 +31,7 @@ MESSAGE = GLib.LogLevelFlags.LEVEL_MESSAGE
 INFO = GLib.LogLevelFlags.LEVEL_INFO
 DEBUG = GLib.LogLevelFlags.LEVEL_DEBUG
 
-NAMES = {
+LEVELS_TO_NAMES = {
 	ERROR: "error",
 	CRITICAL: "critical",
 	WARNING: "warning",
@@ -39,8 +40,17 @@ NAMES = {
 	DEBUG: "debug"
 }
 
+NAMES_TO_LEVELS = {}
+
+for level, name in LEVELS_TO_NAMES.items():
+	NAMES_TO_LEVELS[name] = level
+
 # messages equal or higher in severity will be printed
 output_level = MESSAGE
+
+name = os.getenv('GEDIT_EX_MORTIS_DEBUG_LEVEL', '').lower()
+if name in NAMES_TO_LEVELS:
+	output_level = NAMES_TO_LEVELS[name]
 
 # set by query(), used by prefix()
 last_queried_level = None
@@ -90,7 +100,7 @@ def prefix(log_level=None):
 	if log_level is None:
 		log_level = last_queried_level
 
-	name = NAMES[highest(log_level)] if log_level is not None else 'unknown'
+	name = LEVELS_TO_NAMES[highest(log_level)] if log_level is not None else 'unknown'
 
 	return '[' + name + '] '
 
