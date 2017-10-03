@@ -36,7 +36,7 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.prefix())
 
 		self._windows = {}
-		self._save_size_ids = {}
+		self._schedule_ids = {}
 
 	def cleanup(self):
 		if log.query(log.INFO):
@@ -48,7 +48,7 @@ class ExMortisWindowManager(GObject.Object):
 			self.untrack_window(window)
 
 		self._windows = None
-		self._save_size_ids = None
+		self._schedule_ids = None
 
 
 	# signals
@@ -93,6 +93,8 @@ class ExMortisWindowManager(GObject.Object):
 		state = ExMortisWindowState()
 		side_panel = window.get_side_panel()
 		bottom_panel = window.get_bottom_panel()
+		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
 
 		connect_handlers(
 			self, window,
@@ -125,8 +127,24 @@ class ExMortisWindowManager(GObject.Object):
 			'bottom_panel',
 			window, state
 		)
+		connect_handlers(
+			self, hpaned,
+			[
+				'notify::position'
+			],
+			'hpaned',
+			window, state
+		)
+		connect_handlers(
+			self, vpaned,
+			[
+				'notify::position'
+			],
+			'vpaned',
+			window, state
+		)
 
-		self._windows[window] = state
+		self._windows[window] = (state, side_panel, bottom_panel, hpaned, vpaned)
 
 		for document in window.get_documents():
 			self.track_tab(window, Gedit.Tab.get_from_document(document), state)
@@ -140,17 +158,17 @@ class ExMortisWindowManager(GObject.Object):
 				Gedit.debug_plugin_message(log.prefix() + "unknown window")
 			return
 
-		if window in self._save_size_ids:
-			GLib.source_remove(self._save_size_ids[window])
-			del self._save_size_ids[window]
+		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
 
-		state = self._windows[window]
-		side_panel = window.get_side_panel()
-		bottom_panel = window.get_bottom_panel()
+		self.cancel_scheduled(window)
+		self.cancel_scheduled(hpaned)
+		self.cancel_scheduled(vpaned)
 
 		disconnect_handlers(self, window)
 		disconnect_handlers(self, side_panel)
 		disconnect_handlers(self, bottom_panel)
+		disconnect_handlers(self, hpaned)
+		disconnect_handlers(self, vpaned)
 
 		for document in window.get_documents():
 			self.untrack_tab(window, Gedit.Tab.get_from_document(document), state)
@@ -187,18 +205,17 @@ class ExMortisWindowManager(GObject.Object):
 				Gedit.debug_plugin_message(log.prefix() + "unknown window")
 			return None
 
-		return self._windows[window]
+		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
+
+		return state
 
 	def export_window_state(self, window):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		if window not in self._windows:
-			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "unknown window")
-			return None
+		state = self.get_window_state(window)
 
-		return ExMortisWindowState.clone(self._windows[window])
+		return ExMortisWindowState.clone(state) if state else None
 
 	def import_window_state(self, window, state, set_default_size=False):
 		if log.query(log.INFO):
@@ -219,25 +236,19 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		if window not in self._windows:
-			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "unknown window")
-			return
+		state = self.get_window_state(window)
 
-		state = self._windows[window]
-		state.save_window(window)
+		if state:
+			state.save_window(window)
 
 	def restore_from_window_state(self, window):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		if window not in self._windows:
-			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "unknown window")
-			return
+		state = self.get_window_state(window)
 
-		state = self._windows[window]
-		state.apply_window(window)
+		if state:
+			state.apply_window(window)
 
 	def open_new_window_with_window_state(self, state):
 		if log.query(log.INFO):
@@ -304,12 +315,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		if window in self._save_size_ids:
-			GLib.source_remove(self._save_size_ids[window])
-
-		self._save_size_ids[window] = GLib.timeout_add(
-			1000, self.on_timeout_save_window_size, window, state
-		)
+		self.schedule(window, self.scheduled_save_window_size, state)
 
 	def on_window_window_state_event(self, window, event, state):
 		if log.query(log.INFO):
@@ -341,17 +347,79 @@ class ExMortisWindowManager(GObject.Object):
 
 		state.save_bottom_panel_visible(window)
 
-	def on_timeout_save_window_size(self, window, state):
+	# this signal could be emitted frequently
+	def on_hpaned_notify_position(self, hpaned, pspec, window, state):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		self.schedule(hpaned, self.scheduled_save_hpaned_position, window, state)
+
+	# this signal could be emitted frequently
+	def on_vpaned_notify_position(self, vpaned, pspec, window, state):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		self.schedule(vpaned, self.scheduled_save_vpaned_position, window, state)
+
+
+	# scheduled handlers
+
+	def scheduled_save_window_size(self, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		if not state.maximized and not state.fullscreen:
 			state.save_size(window)
 
-		if window in self._save_size_ids:
-			del self._save_size_ids[window]
+		self.done_scheduled(window)
 
 		return False
+
+	def scheduled_save_hpaned_position(self, hpaned, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		state.save_hpaned_position(window)
+
+		self.done_scheduled(hpaned)
+
+		return False
+
+	def scheduled_save_vpaned_position(self, vpaned, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		state.save_vpaned_position(window)
+
+		self.done_scheduled(vpaned)
+
+		return False
+
+
+	# schedule
+
+	def schedule(self, obj, fn, *args):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
+
+		self.cancel_scheduled(obj)
+
+		self._schedule_ids[obj] = GLib.timeout_add(1000, fn, obj, *args)
+
+	def cancel_scheduled(self, obj):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
+
+		if obj in self._schedule_ids:
+			GLib.source_remove(self._schedule_ids[obj])
+			del self._schedule_ids[obj]
+
+	def done_scheduled(self, obj):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
+
+		if obj in self._schedule_ids:
+			del self._schedule_ids[obj]
 
 
 class ExMortisWindowState(GObject.Object):
@@ -375,6 +443,10 @@ class ExMortisWindowState(GObject.Object):
 	bottom_panel_page_name = GObject.Property(type=str, default='')
 
 	bottom_panel_visible = GObject.Property(type=bool, default=False)
+
+	hpaned_position = GObject.Property(type=int, default=0)
+
+	vpaned_position = GObject.Property(type=int, default=0)
 
 
 	def __init__(self):
@@ -457,6 +529,8 @@ class ExMortisWindowState(GObject.Object):
 		self.save_side_panel_visible(window)
 		self.save_bottom_panel_page_name(window)
 		self.save_bottom_panel_visible(window)
+		self.save_hpaned_position(window)
+		self.save_vpaned_position(window)
 
 	def apply_window(self, window, skip_size=False):
 		if log.query(log.INFO):
@@ -471,6 +545,8 @@ class ExMortisWindowState(GObject.Object):
 		self.apply_side_panel_visible(window)
 		self.apply_bottom_panel_page_name(window)
 		self.apply_bottom_panel_visible(window)
+		self.apply_hpaned_position(window)
+		self.apply_vpaned_position(window)
 
 
 	# window uris
@@ -816,6 +892,60 @@ class ExMortisWindowState(GObject.Object):
 
 		bottom_panel = window.get_bottom_panel()
 		bottom_panel.set_visible(visible)
+
+
+	# hpaned position
+
+	def save_hpaned_position(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+		position = hpaned.get_position()
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "saving position=%s", position)
+
+		self.hpaned_position = position
+
+	def apply_hpaned_position(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		position = self.hpaned_position
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "applying position=%s", position)
+
+		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+		hpaned.set_position(position)
+
+
+	# vpaned position
+
+	def save_vpaned_position(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
+		position = vpaned.get_position()
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "saving position=%s", position)
+
+		self.vpaned_position = position
+
+	def apply_vpaned_position(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+
+		position = self.vpaned_position
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.prefix() + "applying position=%s", position)
+
+		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
+		vpaned.set_position(position)
 
 
 def copy_uris(source):
