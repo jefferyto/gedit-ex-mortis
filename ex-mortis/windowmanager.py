@@ -520,7 +520,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		self.save_uris(window, True)
+		self.save_uris(window)
 		self.save_active_uri(window)
 		self.save_size(window)
 		self.save_window_state(window)
@@ -550,9 +550,9 @@ class ExMortisWindowState(GObject.Object):
 
 	# window uris
 
-	def save_uris(self, window, force_save=False):
+	def save_uris(self, window):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s, force_save=%s", debug_str(window), force_save)
+			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		uris = []
 		notebook_map = {}
@@ -576,7 +576,7 @@ class ExMortisWindowState(GObject.Object):
 
 		self._tab_map = tab_map
 
-		if not force_save and uris == self._uris:
+		if uris == self._uris:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.prefix() + "no change")
 			return

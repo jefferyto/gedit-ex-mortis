@@ -109,6 +109,7 @@ class QuittingMixin(object):
 			return
 
 		for param in state.list_properties(): # actually a class method
+			# this also immediately sets the settings based on the state values
 			window_settings.bind(
 				param.name,
 				state, param.name,
@@ -117,7 +118,7 @@ class QuittingMixin(object):
 
 		connect_handlers(self, state, ['uris-changed'], 'window_state', window_settings)
 
-		window_manager.save_to_window_state(window)
+		self.on_window_state_uris_changed(state, window_settings)
 
 	def unbind_window_settings(self, window_manager, settings, window):
 		if log.query(log.INFO):
