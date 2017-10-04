@@ -36,7 +36,7 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.prefix())
 
 		self._windows = {}
-		self._schedule_ids = {}
+		self._debounce_ids = {}
 
 	def cleanup(self):
 		if log.query(log.INFO):
@@ -48,7 +48,7 @@ class ExMortisWindowManager(GObject.Object):
 			self.untrack_window(window)
 
 		self._windows = None
-		self._schedule_ids = None
+		self._debounce_ids = None
 
 
 	# signals
@@ -160,9 +160,9 @@ class ExMortisWindowManager(GObject.Object):
 
 		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
 
-		self.cancel_scheduled(window)
-		self.cancel_scheduled(hpaned)
-		self.cancel_scheduled(vpaned)
+		self.cancel_debounce(window)
+		self.cancel_debounce(hpaned)
+		self.cancel_debounce(vpaned)
 
 		disconnect_handlers(self, window)
 		disconnect_handlers(self, side_panel)
@@ -315,7 +315,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		self.schedule(window, self.scheduled_save_window_size, state)
+		self.debounce(window, self.debounce_save_window_size, state)
 
 	def on_window_window_state_event(self, window, event, state):
 		if log.query(log.INFO):
@@ -352,74 +352,74 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		self.schedule(hpaned, self.scheduled_save_hpaned_position, window, state)
+		self.debounce(hpaned, self.debounce_save_hpaned_position, window, state)
 
 	# this signal could be emitted frequently
 	def on_vpaned_notify_position(self, vpaned, pspec, window, state):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
-		self.schedule(vpaned, self.scheduled_save_vpaned_position, window, state)
+		self.debounce(vpaned, self.debounce_save_vpaned_position, window, state)
 
 
-	# scheduled handlers
+	# debounced handlers
 
-	def scheduled_save_window_size(self, window, state):
+	def debounce_save_window_size(self, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		if not state.maximized and not state.fullscreen:
 			state.save_size(window)
 
-		self.done_scheduled(window)
+		self.done_debounce(window)
 
 		return False
 
-	def scheduled_save_hpaned_position(self, hpaned, window, state):
+	def debounce_save_hpaned_position(self, hpaned, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		state.save_hpaned_position(window)
 
-		self.done_scheduled(hpaned)
+		self.done_debounce(hpaned)
 
 		return False
 
-	def scheduled_save_vpaned_position(self, vpaned, window, state):
+	def debounce_save_vpaned_position(self, vpaned, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
 
 		state.save_vpaned_position(window)
 
-		self.done_scheduled(vpaned)
+		self.done_debounce(vpaned)
 
 		return False
 
 
-	# schedule
+	# debouncing
 
-	def schedule(self, obj, fn, *args):
+	def debounce(self, obj, fn, *args):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
 
-		self.cancel_scheduled(obj)
+		self.cancel_debounce(obj)
 
-		self._schedule_ids[obj] = GLib.timeout_add(1000, fn, obj, *args)
+		self._debounce_ids[obj] = GLib.timeout_add(1000, fn, obj, *args)
 
-	def cancel_scheduled(self, obj):
+	def cancel_debounce(self, obj):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
 
-		if obj in self._schedule_ids:
-			GLib.source_remove(self._schedule_ids[obj])
-			del self._schedule_ids[obj]
+		if obj in self._debounce_ids:
+			GLib.source_remove(self._debounce_ids[obj])
+			del self._debounce_ids[obj]
 
-	def done_scheduled(self, obj):
+	def done_debounce(self, obj):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(obj))
 
-		if obj in self._schedule_ids:
-			del self._schedule_ids[obj]
+		if obj in self._debounce_ids:
+			del self._debounce_ids[obj]
 
 
 class ExMortisWindowState(GObject.Object):
