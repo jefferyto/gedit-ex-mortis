@@ -98,7 +98,7 @@ class ExMortisSettings(GObject.Object):
 	@window_ids.setter
 	def window_ids(self, window_ids):
 		settings = self._settings
-		if settings:
+		if settings and window_ids != settings['restore-windows']:
 			settings['restore-windows'] = window_ids
 
 
