@@ -91,6 +91,8 @@ class ExMortisWindowManager(GObject.Object):
 			return
 
 		state = ExMortisWindowState()
+		state.save_window(window)
+
 		side_panel = window.get_side_panel()
 		bottom_panel = window.get_bottom_panel()
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
