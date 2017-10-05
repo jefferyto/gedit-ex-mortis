@@ -21,6 +21,7 @@
 
 import os
 from gi.repository import GLib
+from .utils import debug_str
 
 
 # for convenience, in decreasing order of severity
@@ -103,4 +104,7 @@ def prefix(log_level=None):
 	name = LEVELS_TO_NAMES[highest(log_level)] if log_level is not None else 'unknown'
 
 	return '[' + name + '] '
+
+def format(message, *args):
+	return prefix() + (message % tuple(debug_str(arg) for arg in args))
 

@@ -45,13 +45,13 @@ class ExistingMixin(object):
 
 	def do_activate_existing(self):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix())
+			Gedit.debug_plugin_message(log.format(""))
 
 		self._existing = {}
 
 	def do_deactivate_existing(self):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix())
+			Gedit.debug_plugin_message(log.format(""))
 
 		self._existing = None
 
@@ -60,7 +60,7 @@ class ExistingMixin(object):
 
 	def create_existing_info_bar(self):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix())
+			Gedit.debug_plugin_message(log.format(""))
 
 		screen_settings = Gtk.Settings.get_default()
 		is_app_menu = not screen_settings.get_property('gtk-shell-shows-menubar')
@@ -109,7 +109,7 @@ class ExistingMixin(object):
 
 	def pack_existing_info_bar(self, window, info_bar):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+			Gedit.debug_plugin_message(log.format("%s", window))
 
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
 		main_box = hpaned.get_parent()
@@ -129,11 +129,11 @@ class ExistingMixin(object):
 
 	def add_existing(self, window):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "window already added")
+				Gedit.debug_plugin_message(log.format("window already added"))
 
 			# disconnect handlers?
 
@@ -147,11 +147,11 @@ class ExistingMixin(object):
 
 	def show_existing_info_bar(self, window):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "window not existing")
+				Gedit.debug_plugin_message(log.format("window not existing"))
 			return None
 
 		info_bar = self._existing[window]
@@ -165,22 +165,22 @@ class ExistingMixin(object):
 
 	def get_existing_info_bar(self, window):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "window not existing")
+				Gedit.debug_plugin_message(log.format("window not existing"))
 			return None
 
 		return self._existing[window]
 
 	def remove_existing(self, window):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.prefix() + "%s", debug_str(window))
+			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.prefix() + "window not existing")
+				Gedit.debug_plugin_message(log.format("window not existing"))
 			return None
 
 		info_bar = self._existing[window]
