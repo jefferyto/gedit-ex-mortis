@@ -140,14 +140,13 @@ class ExMortisSettings(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		window_ids = self.window_ids
-		window_id_map = {window_id : True for window_id in window_ids}
+		window_id_set = set(self.window_ids)
 		counter = 0
 
 		while True:
 			window_id = 'window' + str(counter)
 
-			if window_id not in window_id_map:
+			if window_id not in window_id_set:
 				break
 
 			counter += 1
