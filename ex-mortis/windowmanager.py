@@ -586,7 +586,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving uris=%s", uris))
@@ -594,6 +594,8 @@ class ExMortisWindowState(GObject.Object):
 		self._uris = uris
 
 		self.emit('uris-changed')
+
+		return True
 
 	def update_uri_from_tab(self, window, tab, forget_tab=False):
 		if log.query(log.INFO):
@@ -620,7 +622,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("not in tab map"))
 
-			return
+			return False
 
 		notebook_index, tab_index = self._tab_map[tab]
 
@@ -633,7 +635,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving uri=%s", uri))
@@ -641,6 +643,8 @@ class ExMortisWindowState(GObject.Object):
 		self._uris[notebook_index][tab_index] = uri
 
 		self.emit('uris-changed')
+
+		return True
 
 	def apply_uris(self, window):
 		if log.query(log.INFO):
@@ -691,12 +695,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving active_uri=%s", active_uri))
 
 		self.active_uri = active_uri
+
+		return True
 
 	def apply_active_uri(self, window):
 		if log.query(log.INFO):
@@ -737,7 +743,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if width != self.width:
 			if log.query(log.INFO):
@@ -750,6 +756,8 @@ class ExMortisWindowState(GObject.Object):
 				Gedit.debug_plugin_message(log.format("saving height=%s", height))
 
 			self.height = height
+
+		return True
 
 	def apply_size(self, window, set_default_size=False):
 		if log.query(log.INFO):
@@ -780,7 +788,7 @@ class ExMortisWindowState(GObject.Object):
 				if log.query(log.INFO):
 					Gedit.debug_plugin_message(log.format("window not yet realized"))
 
-				return
+				return False
 
 			window_state = gdk_window.get_state()
 
@@ -791,7 +799,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if maximized != self.maximized:
 			if log.query(log.INFO):
@@ -804,6 +812,8 @@ class ExMortisWindowState(GObject.Object):
 				Gedit.debug_plugin_message(log.format("saving fullscreen=%s", fullscreen))
 
 			self.fullscreen = fullscreen
+
+		return True
 
 	def apply_window_state(self, window):
 		if log.query(log.INFO):
@@ -841,12 +851,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving page_name=%s", page_name))
 
 		self.side_panel_page_name = page_name
+
+		return True
 
 	def apply_side_panel_page_name(self, window):
 		if log.query(log.INFO):
@@ -880,12 +892,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving visible=%s", visible))
 
 		self.side_panel_visible = visible
+
+		return True
 
 	def apply_side_panel_visible(self, window):
 		if log.query(log.INFO):
@@ -915,12 +929,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving page_name=%s", page_name))
 
 		self.bottom_panel_page_name = page_name
+
+		return True
 
 	def apply_bottom_panel_page_name(self, window):
 		if log.query(log.INFO):
@@ -955,12 +971,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving visible=%s", visible))
 
 		self.bottom_panel_visible = visible
+
+		return True
 
 	def apply_bottom_panel_visible(self, window):
 		if log.query(log.INFO):
@@ -988,12 +1006,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving position=%s", position))
 
 		self.hpaned_position = position
+
+		return True
 
 	def apply_hpaned_position(self, window):
 		if log.query(log.INFO):
@@ -1021,12 +1041,14 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
 
-			return
+			return False
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("saving position=%s", position))
 
 		self.vpaned_position = position
+
+		return True
 
 	def apply_vpaned_position(self, window):
 		if log.query(log.INFO):
