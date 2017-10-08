@@ -153,7 +153,7 @@ class ExistingMixin(object):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("window not existing"))
 
-			return None
+			return
 
 		info_bar = self._existing[window]
 
@@ -184,7 +184,7 @@ class ExistingMixin(object):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("window not existing"))
 
-			return None
+			return
 
 		info_bar = self._existing[window]
 		info_bar.destroy()
