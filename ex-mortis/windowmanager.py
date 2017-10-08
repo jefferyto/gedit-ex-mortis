@@ -21,7 +21,7 @@
 
 from gi.repository import GObject, GLib, Gedit
 from .windowmanager import ExMortisWindowState
-from .utils import connect_handlers, disconnect_handlers, debug_str
+from .utils import connect_handlers, disconnect_handlers
 from . import log
 
 

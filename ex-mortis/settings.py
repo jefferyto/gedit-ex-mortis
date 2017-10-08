@@ -21,7 +21,6 @@
 
 import os.path
 from gi.repository import GObject, Gio, Gedit
-from .utils import debug_str
 from . import log
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))

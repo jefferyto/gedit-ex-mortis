@@ -30,7 +30,7 @@ from .existingmixin import ExistingMixin
 from .quittingmixin import QuittingMixin
 from .settings import ExMortisSettings
 from .windowmanager import ExMortisWindowManager
-from .utils import connect_handlers, disconnect_handlers, create_bindings, debug_str
+from .utils import connect_handlers, disconnect_handlers, create_bindings
 from . import log
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
