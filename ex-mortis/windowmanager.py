@@ -459,7 +459,7 @@ class ExMortisWindowState(GObject.Object):
 		GObject.Object.__init__(self)
 
 		self._uris = []
-		self._filtered_uris = []
+		self._restore_uris = []
 		self._tab_map = {}
 		self._active_tab = None
 
@@ -497,8 +497,8 @@ class ExMortisWindowState(GObject.Object):
 			self.emit('uris-changed')
 
 	@property
-	def filtered_uris(self):
-		return copy_uris(self._filtered_uris)
+	def restore_uris(self):
+		return copy_uris(self._restore_uris)
 
 	@property
 	def tab_map(self):
@@ -516,8 +516,8 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		filtered = [[uri for uri in uris if uri] for uris in self._uris]
-		self._filtered_uris = [uris for uris in filtered if uris]
+		restore = [[uri for uri in uris if uri] for uris in self._uris]
+		self._restore_uris = [uris for uris in restore if uris]
 
 
 	# saving / applying windows
@@ -650,7 +650,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		uris = self._filtered_uris
+		uris = self._restore_uris
 
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("uris=%s", uris))

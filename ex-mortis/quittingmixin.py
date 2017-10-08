@@ -168,7 +168,7 @@ class QuittingMixin(object):
 		del self._window_ids[window]
 
 	def on_window_state_uris_changed(self, state, window_settings):
-		window_settings['uris'] = state.filtered_uris
+		window_settings['uris'] = state.restore_uris
 
 
 	# quitting
@@ -242,7 +242,7 @@ class QuittingMixin(object):
 
 		if do_save:
 			for window, state in self._quitting.items():
-				if state.filtered_uris:
+				if state.restore_uris:
 					window_id = settings.add_window()
 					window_settings = settings.get_window_settings(window_id)
 
@@ -254,7 +254,7 @@ class QuittingMixin(object):
 					for param in state.list_properties(): # actually a class method
 						window_settings[param.name] = state.get_property(param.name)
 
-					window_settings['uris'] = state.filtered_uris
+					window_settings['uris'] = state.restore_uris
 
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("saving %s windows", len(settings.window_ids)))
@@ -292,7 +292,7 @@ class QuittingMixin(object):
 
 				state.uris = window_settings['uris']
 
-				if state.filtered_uris:
+				if state.restore_uris:
 					states.append(state)
 
 			settings.remove_window(window_id)
