@@ -328,7 +328,7 @@ class QuittingMixin(object):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		if (tab.get_document().is_untouched()
-				and tab.get_state() is Gedit.TabState.STATE_NORMAL):
+				and tab.get_state() == Gedit.TabState.STATE_NORMAL):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("closing untouched tab"))
 
@@ -352,13 +352,15 @@ class QuittingMixin(object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		if not self._restore_window:
+		restore_window = self._restore_window
+
+		if not restore_window:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no restore window or restore window already torn down"))
 
 			return
 
-		if window is not self._restore_window:
+		if window != restore_window:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("not restore window"))
 
@@ -367,7 +369,8 @@ class QuittingMixin(object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("tearing down restore window"))
 
-		window.disconnect(self._restore_handler_id)
+		restore_window.disconnect(self._restore_handler_id)
+
 		self._restore_window = None
 		self._restore_handler_id = None
 
