@@ -315,6 +315,7 @@ class ExMortisAppActivatable(
 		if not isinstance(window, Gedit.Window):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("not a main window"))
+
 			return
 
 		if log.query(log.INFO):
@@ -334,6 +335,7 @@ class ExMortisAppActivatable(
 		if not isinstance(window, Gedit.Window):
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("not a main window"))
+
 			return
 
 		if log.query(log.INFO):
@@ -368,6 +370,7 @@ class ExMortisAppActivatable(
 		if restore_between_sessions == self.is_saving_window_states():
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("restore-between-sessions has not changed"))
+
 			return
 
 		if restore_between_sessions:

@@ -88,6 +88,7 @@ class ExMortisWindowManager(GObject.Object):
 		if window in self._windows:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("window already being tracked"))
+
 			return
 
 		state = ExMortisWindowState()
@@ -158,6 +159,7 @@ class ExMortisWindowManager(GObject.Object):
 		if window not in self._windows:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window"))
+
 			return
 
 		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
@@ -205,6 +207,7 @@ class ExMortisWindowManager(GObject.Object):
 		if window not in self._windows:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window"))
+
 			return None
 
 		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
@@ -226,6 +229,7 @@ class ExMortisWindowManager(GObject.Object):
 		if window not in self._windows:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window"))
+
 			return
 
 		state.apply_size(window, set_default_size)
@@ -581,6 +585,7 @@ class ExMortisWindowState(GObject.Object):
 		if uris == self._uris:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -614,6 +619,7 @@ class ExMortisWindowState(GObject.Object):
 		if tab not in self._tab_map:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("not in tab map"))
+
 			return
 
 		notebook_index, tab_index = self._tab_map[tab]
@@ -626,6 +632,7 @@ class ExMortisWindowState(GObject.Object):
 		if uri == self._uris[notebook_index][tab_index]:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -683,6 +690,7 @@ class ExMortisWindowState(GObject.Object):
 		if active_uri == self.active_uri:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -699,6 +707,7 @@ class ExMortisWindowState(GObject.Object):
 		if not active_uri:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no active uri"))
+
 			return
 
 		if log.query(log.INFO):
@@ -710,6 +719,7 @@ class ExMortisWindowState(GObject.Object):
 		if not tab:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not find tab for active uri"))
+
 			return
 
 		window.set_active_tab(tab)
@@ -726,6 +736,7 @@ class ExMortisWindowState(GObject.Object):
 		if width == self.width and height == self.height:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if width != self.width:
@@ -768,6 +779,7 @@ class ExMortisWindowState(GObject.Object):
 			if not gdk_window:
 				if log.query(log.INFO):
 					Gedit.debug_plugin_message(log.format("window not yet realized"))
+
 				return
 
 			window_state = gdk_window.get_state()
@@ -778,6 +790,7 @@ class ExMortisWindowState(GObject.Object):
 		if maximized == self.maximized and fullscreen == self.fullscreen:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if maximized != self.maximized:
@@ -827,6 +840,7 @@ class ExMortisWindowState(GObject.Object):
 		if page_name == self.side_panel_page_name:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -843,6 +857,7 @@ class ExMortisWindowState(GObject.Object):
 		if not page_name:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("no page name"))
+
 			return
 
 		if log.query(log.INFO):
@@ -864,6 +879,7 @@ class ExMortisWindowState(GObject.Object):
 		if visible == self.side_panel_visible:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -898,6 +914,7 @@ class ExMortisWindowState(GObject.Object):
 		if page_name == self.bottom_panel_page_name:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -915,6 +932,7 @@ class ExMortisWindowState(GObject.Object):
 			# it is possible there is no bottom panel
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no page name"))
+
 			return
 
 		if log.query(log.INFO):
@@ -936,6 +954,7 @@ class ExMortisWindowState(GObject.Object):
 		if visible == self.bottom_panel_visible:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -968,6 +987,7 @@ class ExMortisWindowState(GObject.Object):
 		if position == self.hpaned_position:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):
@@ -1000,6 +1020,7 @@ class ExMortisWindowState(GObject.Object):
 		if position == self.vpaned_position:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no change"))
+
 			return
 
 		if log.query(log.INFO):

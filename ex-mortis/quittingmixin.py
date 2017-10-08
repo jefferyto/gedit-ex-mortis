@@ -57,6 +57,7 @@ class QuittingMixin(object):
 		if self.is_saving_window_states():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("already saving window states"))
+
 			return
 
 		self._window_ids = {}
@@ -73,6 +74,7 @@ class QuittingMixin(object):
 		if not self.is_saving_window_states():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("not saving window states"))
+
 			return
 
 		app = Gedit.App.get_default()
@@ -89,6 +91,7 @@ class QuittingMixin(object):
 		if not self.is_saving_window_states():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("not saving window states"))
+
 			return
 
 		state = window_manager.get_window_state(window)
@@ -96,6 +99,7 @@ class QuittingMixin(object):
 		if not state:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not get window state"))
+
 			return
 
 		window_id = settings.add_window()
@@ -106,6 +110,7 @@ class QuittingMixin(object):
 		if not window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not get window settings"))
+
 			return
 
 		for param in state.list_properties(): # actually a class method
@@ -127,6 +132,7 @@ class QuittingMixin(object):
 		if not self.is_saving_window_states():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("not saving window states"))
+
 			return
 
 		state = window_manager.get_window_state(window)
@@ -134,11 +140,13 @@ class QuittingMixin(object):
 		if not state:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not get window state"))
+
 			return
 
 		if window not in self._window_ids:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not find window id"))
+
 			return
 
 		window_id = self._window_ids[window]
@@ -147,6 +155,7 @@ class QuittingMixin(object):
 		if not window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("could not get window settings"))
+
 			return
 
 		for param in state.list_properties(): # actually a class method
@@ -190,6 +199,7 @@ class QuittingMixin(object):
 		if not self.is_quitting():
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not quitting"))
+
 			return
 
 		if log.query(log.INFO):
@@ -205,6 +215,7 @@ class QuittingMixin(object):
 		if not self.is_quitting():
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not quitting"))
+
 			return
 
 		if log.query(log.INFO):
@@ -213,6 +224,7 @@ class QuittingMixin(object):
 		if window not in self._quitting:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window"))
+
 			return
 
 		state = self._quitting[window]
@@ -225,6 +237,7 @@ class QuittingMixin(object):
 		if not self.is_quitting():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("end quitting without starting"))
+
 			return
 
 		if do_save:
@@ -342,11 +355,13 @@ class QuittingMixin(object):
 		if not self._restore_window:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("no restore window or restore window already torn down"))
+
 			return
 
 		if window is not self._restore_window:
 			if log.query(log.INFO):
 				Gedit.debug_plugin_message(log.format("not restore window"))
+
 			return
 
 		if log.query(log.INFO):

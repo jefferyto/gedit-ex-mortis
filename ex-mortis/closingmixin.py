@@ -64,6 +64,7 @@ class ClosingMixin(object):
 		if not self.is_closing(window):
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not closing window"))
+
 			return
 
 		if log.query(log.INFO):
@@ -79,6 +80,7 @@ class ClosingMixin(object):
 		if not self.is_closing(window):
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not closing window"))
+
 			return
 
 		if log.query(log.INFO):
@@ -94,6 +96,7 @@ class ClosingMixin(object):
 		if not self.is_closing(window):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("end closing window without starting"))
+
 			return
 
 		state = self._closing[window]
@@ -123,6 +126,7 @@ class ClosingMixin(object):
 		if not self.can_reopen():
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("do not have closed windows to reopen"))
+
 			return
 
 		window_manager.open_new_window_with_window_state(self._closed.pop())

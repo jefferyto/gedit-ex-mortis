@@ -126,6 +126,7 @@ class ExMortisSettings(GObject.Object):
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window id"))
+
 			return
 
 		self.reset_window_settings(window_id)
@@ -163,6 +164,7 @@ class ExMortisSettings(GObject.Object):
 		if window_id in self._window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("already init"))
+
 			return
 
 		settings = get_settings(
@@ -180,6 +182,7 @@ class ExMortisSettings(GObject.Object):
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window id"))
+
 			return None
 
 		return self._window_settings[window_id]
@@ -191,6 +194,7 @@ class ExMortisSettings(GObject.Object):
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("unknown window id"))
+
 			return
 
 		settings = self._window_settings[window_id]
@@ -206,6 +210,7 @@ def get_settings(schema_source, schema_id, settings_path):
 	if not schema_source:
 		if log.query(log.CRITICAL):
 			Gedit.debug_plugin_message(log.format("no schema source"))
+
 		return None
 
 	schema = schema_source.lookup(schema_id, False)
@@ -213,6 +218,7 @@ def get_settings(schema_source, schema_id, settings_path):
 	if not schema:
 		if log.query(log.CRITICAL):
 			Gedit.debug_plugin_message(log.format("could not lookup '%s' in schema source", schema_id))
+
 		return None
 
 	return Gio.Settings.new_full(schema, None, settings_path)
