@@ -150,7 +150,7 @@ class ExMortisWindowState(GObject.Object):
 
 		prev = self.get_property(property_name)
 
-		if value != prev:
+		if value == prev:
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("no change"))
 
