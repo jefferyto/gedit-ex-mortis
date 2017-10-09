@@ -313,12 +313,12 @@ class ExMortisAppActivatable(
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not isinstance(window, Gedit.Window):
-			if log.query(log.INFO):
+			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not a main window"))
 
 			return
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("a main window"))
 
 		self.cancel_quitting()
@@ -333,12 +333,12 @@ class ExMortisAppActivatable(
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not isinstance(window, Gedit.Window):
-			if log.query(log.INFO):
+			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("not a main window"))
 
 			return
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("a main window"))
 
 		if not self.is_existing(window):
@@ -364,12 +364,12 @@ class ExMortisAppActivatable(
 
 		restore_between_sessions = settings.restore_between_sessions
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("restore-between-sessions=%s", restore_between_sessions))
 
 		if restore_between_sessions == self.is_saving_window_states():
-			if log.query(log.INFO):
-				Gedit.debug_plugin_message(log.format("restore-between-sessions has not changed"))
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("setting has not changed"))
 
 			return
 
@@ -398,13 +398,13 @@ class ExMortisAppActivatable(
 		info_bar.hide()
 
 		if response_id == quit_response_id:
-			if log.query(log.INFO):
+			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("quit selected"))
 
 			self.app.activate_action('quit')
 
 		else:
-			if log.query(log.INFO):
+			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("quit not selected"))
 
 
@@ -416,7 +416,7 @@ class ExMortisAppActivatable(
 
 		can_reopen = self.can_reopen()
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("can_reopen=%s", can_reopen))
 
 		self._reopen_action.set_enabled(can_reopen)

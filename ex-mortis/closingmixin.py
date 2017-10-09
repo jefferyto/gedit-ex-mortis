@@ -66,7 +66,7 @@ class ClosingMixin(object):
 
 			return
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("cancelling closing window"))
 
 		del self._closing[window]
@@ -82,7 +82,7 @@ class ClosingMixin(object):
 
 			return
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("updating closing window"))
 
 		state = self._closing[window]

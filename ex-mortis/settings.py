@@ -107,7 +107,7 @@ class ExMortisSettings(GObject.Object):
 
 		window_id = self.find_unused_window_id()
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("adding window_id=%s", window_id))
 
 		self.init_window_settings(window_id)
@@ -151,7 +151,7 @@ class ExMortisSettings(GObject.Object):
 
 			counter += 1
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("found window_id=%s", window_id))
 
 		return window_id
