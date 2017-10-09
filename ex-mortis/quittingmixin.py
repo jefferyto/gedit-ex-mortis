@@ -228,7 +228,9 @@ class QuittingMixin(object):
 			return
 
 		state = self._quitting[window]
-		state.update_uri_from_tab(window, tab, True)
+
+		state.save_uri(window, tab)
+		state.forget_tab(tab)
 
 	def end_quitting(self, settings, do_save):
 		if log.query(log.INFO):

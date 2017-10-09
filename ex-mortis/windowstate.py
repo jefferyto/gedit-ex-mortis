@@ -54,9 +54,9 @@ class ExMortisWindowState(GObject.Object):
 	def __init__(self):
 		GObject.Object.__init__(self)
 
+		self._tab_map = {}
 		self._uris = []
 		self._restore_uris = []
-		self._tab_map = {}
 		self._active_tab = None
 
 
@@ -69,10 +69,10 @@ class ExMortisWindowState(GObject.Object):
 		for param in cls.list_properties():
 			clone.set_property(param.name, source.get_property(param.name))
 
-		clone.uris = source.uris
-		clone.tab_map = source.tab_map
-
+		clone._tab_map = dict(source._tab_map)
 		clone._active_tab = source._active_tab
+
+		clone.uris = source.uris
 
 		return clone
 
@@ -96,14 +96,6 @@ class ExMortisWindowState(GObject.Object):
 	def restore_uris(self):
 		return copy_uris(self._restore_uris)
 
-	@property
-	def tab_map(self):
-		return copy_tab_map(self._tab_map)
-
-	@tab_map.setter
-	def tab_map(self, value):
-		self._tab_map = copy_tab_map(value)
-
 
 	# signals
 
@@ -112,8 +104,8 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		restore = [[uri for uri in uris if uri] for uris in self._uris]
-		self._restore_uris = [uris for uris in restore if uris]
+		filtered = [[uri for uri in uris if uri] for uris in self._uris]
+		self._restore_uris = [uris for uris in filtered if uris]
 
 
 	# saving / applying windows
@@ -122,7 +114,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		self.save_uris(window)
+		self.update_structure(window)
 		self.save_active_uri(window, window.get_active_tab())
 		self.save_size(window)
 		self.save_window_state(window)
@@ -172,17 +164,17 @@ class ExMortisWindowState(GObject.Object):
 		return True
 
 
-	# window uris
+	# window structure
 
-	def save_uris(self, window):
+	def update_structure(self, window):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		prev_uris = self._uris
 
-		uris = []
 		notebook_map = {}
 		tab_map = {}
+		uris = []
 
 		for document in window.get_documents():
 			tab = Gedit.Tab.get_from_document(document)
@@ -196,11 +188,14 @@ class ExMortisWindowState(GObject.Object):
 			notebook_uris = uris[notebook_index]
 
 			tab_index = len(notebook_uris)
-			notebook_uris.append(get_tab_uri(tab))
+			notebook_uris.append('')
 
 			tab_map[tab] = (notebook_index, tab_index)
 
 		self._tab_map = tab_map
+		self._uris = uris
+
+		self.save_uris(window, True)
 
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("uris=%s", uris))
@@ -220,26 +215,44 @@ class ExMortisWindowState(GObject.Object):
 
 		return True
 
-	def update_uri_from_tab(self, window, tab, forget_tab=False):
+	def forget_tabs(self):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, %s, forget_tab=%s", window, tab, forget_tab))
+			Gedit.debug_plugin_message(log.format(""))
 
-		# active uri
+		self._tab_map = {}
+		self._active_tab = None
 
-		if tab is self._active_tab:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("active tab"))
+	def forget_tab(self, tab):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", tab))
 
+		if tab == self._active_tab:
+			self._active_tab = None
+
+		if tab in self._tab_map:
+			del self._tab_map[tab]
+
+
+	# window uris
+
+	def save_uris(self, window, bulk_update=False):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
+
+		results = [self.save_uri(window, tab, True) for tab in self._tab_map.keys()]
+		changed = any(results)
+
+		if not bulk_update and changed:
+			self.emit('uris-changed')
+
+		return changed
+
+	def save_uri(self, window, tab, bulk_update=False):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s, bulk_update=%s", window, tab, bulk_update))
+
+		if not bulk_update and tab == self._active_tab:
 			self.save_active_uri(window)
-
-			if forget_tab:
-				self._active_tab = None
-
-		else:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not active tab"))
-
-		# uris
 
 		if tab not in self._tab_map:
 			if log.query(log.WARNING):
@@ -252,9 +265,6 @@ class ExMortisWindowState(GObject.Object):
 		prev_uri = self._uris[notebook_index][tab_index]
 
 		uri = get_tab_uri(tab)
-
-		if forget_tab:
-			del self._tab_map[tab]
 
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("uri=%s", uri))
@@ -270,7 +280,8 @@ class ExMortisWindowState(GObject.Object):
 
 		self._uris[notebook_index][tab_index] = uri
 
-		self.emit('uris-changed')
+		if not bulk_update:
+			self.emit('uris-changed')
 
 		return True
 
@@ -595,12 +606,7 @@ class ExMortisWindowState(GObject.Object):
 def copy_uris(source):
 	return [[uri for uri in uris] for uris in source]
 
-def copy_tab_map(source):
-	return {tab : indices for tab, indices in source.items()}
-
 def get_tab_uri(tab):
-	source_file = tab.get_document().get_file()
-	location = source_file.get_location() if source_file else None
-	uri = location.get_uri() if location else None
-	return uri
+	location = tab.get_document().get_file().get_location()
+	return location.get_uri() if location else ''
 

@@ -86,7 +86,9 @@ class ClosingMixin(object):
 			Gedit.debug_plugin_message(log.format("updating closing window"))
 
 		state = self._closing[window]
-		state.update_uri_from_tab(window, tab, True)
+
+		state.save_uri(window, tab)
+		state.forget_tab(tab)
 
 	def end_closing(self, window):
 		if log.query(log.INFO):

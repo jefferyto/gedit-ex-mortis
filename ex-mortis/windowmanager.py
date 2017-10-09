@@ -215,13 +215,21 @@ class ExMortisWindowManager(GObject.Object):
 
 		return state
 
-	def export_window_state(self, window):
+	def export_window_state(self, window, forget_tabs=False):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
+			Gedit.debug_plugin_message(log.format("%s, forget_tabs=%s", window, forget_tabs))
 
 		state = self.get_window_state(window)
 
-		return ExMortisWindowState.clone(state) if state else None
+		if not state:
+			return None
+
+		export = ExMortisWindowState.clone(state)
+
+		if forget_tabs:
+			export.forget_tabs()
+
+		return export
 
 	def import_window_state(self, window, state, set_default_size=False):
 		if log.query(log.INFO):
@@ -279,7 +287,7 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.track_tab(window, tab, state)
 
-		state.save_uris(window)
+		state.update_structure(window)
 
 		self.emit('tab-added', window, tab)
 
@@ -289,7 +297,7 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.untrack_tab(window, tab, state)
 
-		state.save_uris(window)
+		state.update_structure(window)
 
 		self.emit('tab-removed', window, tab)
 
@@ -297,7 +305,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		state.save_uris(window)
+		state.update_structure(window)
 
 		self.emit('tabs-reordered', window)
 
@@ -308,14 +316,6 @@ class ExMortisWindowManager(GObject.Object):
 		state.save_active_uri(window, tab)
 
 		self.emit('active-tab-changed', window, tab)
-
-	def on_tab_notify_name(self, tab, pspec, window, state):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
-
-		state.update_uri_from_tab(window, tab)
-
-		self.emit('tab-updated', window, tab)
 
 	# this signal is emitted way too frequently
 	def on_window_size_allocate(self, window, allocation, state):
@@ -367,6 +367,14 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		self.debounce(vpaned, self.debounce_save_vpaned_position, window, state)
+
+	def on_tab_notify_name(self, tab, pspec, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
+
+		state.save_uri(window, tab)
+
+		self.emit('tab-updated', window, tab)
 
 
 	# debounced handlers
