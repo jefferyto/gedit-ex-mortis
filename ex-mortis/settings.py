@@ -62,16 +62,12 @@ class ExMortisSettings(GObject.Object):
 		)
 
 		if settings:
-			settings.bind(
-				'restore-between-sessions',
-				self, 'restore-between-sessions',
-				Gio.SettingsBindFlags.DEFAULT
-			)
-			settings.bind(
-				'restore-windows',
-				self, 'restore-windows',
-				Gio.SettingsBindFlags.DEFAULT
-			)
+			for param in self.list_properties():
+				settings.bind(
+					param.name,
+					self, param.name,
+					Gio.SettingsBindFlags.DEFAULT
+				)
 
 		self._schema_source = schema_source
 		self._settings = settings
@@ -84,9 +80,11 @@ class ExMortisSettings(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		if self._settings:
-			self._settings.unbind(self, 'restore-between-sessions')
-			self._settings.unbind(self, 'restore-windows')
+		settings = self._settings
+
+		if settings:
+			for param in self.list_properties():
+				settings.unbind(self, param.name)
 
 		self._schema_source = None
 		self._settings = None
