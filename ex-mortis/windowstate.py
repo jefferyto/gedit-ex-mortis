@@ -20,7 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import GObject, Gdk, Gio, Gedit
-from .utils import connect_handlers, disconnect_handlers
 from . import log
 
 
