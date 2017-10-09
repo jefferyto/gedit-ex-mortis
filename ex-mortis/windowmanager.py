@@ -148,7 +148,15 @@ class ExMortisWindowManager(GObject.Object):
 			window, state
 		)
 
-		self._windows[window] = (state, side_panel, bottom_panel, hpaned, vpaned)
+		self._windows[window] = (
+			state,
+			{
+				'side_panel': side_panel,
+				'bottom_panel': bottom_panel,
+				'hpaned': hpaned,
+				'vpaned': vpaned
+			}
+		)
 
 		for document in window.get_documents():
 			self.track_tab(window, Gedit.Tab.get_from_document(document), state)
@@ -163,20 +171,22 @@ class ExMortisWindowManager(GObject.Object):
 
 			return
 
-		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
+		state, widgets = self._windows[window]
+		hpaned = widgets['hpaned']
+		vpaned = widgets['vpaned']
+
+		for document in window.get_documents():
+			self.untrack_tab(window, Gedit.Tab.get_from_document(document), state)
 
 		self.cancel_debounce(window)
 		self.cancel_debounce(hpaned)
 		self.cancel_debounce(vpaned)
 
 		disconnect_handlers(self, window)
-		disconnect_handlers(self, side_panel)
-		disconnect_handlers(self, bottom_panel)
+		disconnect_handlers(self, widgets['side_panel'])
+		disconnect_handlers(self, widgets['bottom_panel'])
 		disconnect_handlers(self, hpaned)
 		disconnect_handlers(self, vpaned)
-
-		for document in window.get_documents():
-			self.untrack_tab(window, Gedit.Tab.get_from_document(document), state)
 
 		del self._windows[window]
 
@@ -211,7 +221,7 @@ class ExMortisWindowManager(GObject.Object):
 
 			return None
 
-		state, side_panel, bottom_panel, hpaned, vpaned = self._windows[window]
+		state, widgets = self._windows[window]
 
 		return state
 
