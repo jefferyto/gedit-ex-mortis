@@ -259,7 +259,7 @@ class QuittingMixin(object):
 					window_settings['uris'] = state.restore_uris
 
 			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("saving %s windows", len(settings.window_ids)))
+				Gedit.debug_plugin_message(log.format("saving %s windows", len(settings.restore_windows)))
 
 		else:
 			if log.query(log.MESSAGE):
@@ -277,7 +277,7 @@ class QuittingMixin(object):
 		states = []
 		windows = {}
 
-		for window_id in settings.window_ids:
+		for window_id in list(settings.restore_windows):
 			if do_restore:
 				state = window_manager.new_window_state()
 				window_settings = settings.get_window_settings(window_id)

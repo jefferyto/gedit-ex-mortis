@@ -33,6 +33,8 @@ class ExMortisSettings(GObject.Object):
 
 	restore_between_sessions = GObject.Property(type=bool, default=False)
 
+	restore_windows = GObject.Property(type=GObject.GType.from_name('GStrv'), default=[])
+
 
 	def __init__(self):
 		GObject.Object.__init__(self)
@@ -62,7 +64,12 @@ class ExMortisSettings(GObject.Object):
 		if settings:
 			settings.bind(
 				'restore-between-sessions',
-				self, 'restore_between_sessions',
+				self, 'restore-between-sessions',
+				Gio.SettingsBindFlags.DEFAULT
+			)
+			settings.bind(
+				'restore-windows',
+				self, 'restore-windows',
 				Gio.SettingsBindFlags.DEFAULT
 			)
 
@@ -70,7 +77,7 @@ class ExMortisSettings(GObject.Object):
 		self._settings = settings
 		self._window_settings = {}
 
-		for window_id in self.window_ids:
+		for window_id in self.restore_windows:
 			self.init_window_settings(window_id)
 
 	def cleanup(self):
@@ -78,7 +85,8 @@ class ExMortisSettings(GObject.Object):
 			Gedit.debug_plugin_message(log.format(""))
 
 		if self._settings:
-			self._settings.unbind(self, 'restore_between_sessions')
+			self._settings.unbind(self, 'restore-between-sessions')
+			self._settings.unbind(self, 'restore-windows')
 
 		self._schema_source = None
 		self._settings = None
@@ -88,17 +96,6 @@ class ExMortisSettings(GObject.Object):
 	@property
 	def can_save(self):
 		return bool(self._settings)
-
-	@property
-	def window_ids(self):
-		settings = self._settings
-		return settings['restore-windows'] if settings else None
-
-	@window_ids.setter
-	def window_ids(self, window_ids):
-		settings = self._settings
-		if settings and window_ids != settings['restore-windows']:
-			settings['restore-windows'] = window_ids
 
 
 	def add_window(self):
@@ -112,9 +109,9 @@ class ExMortisSettings(GObject.Object):
 
 		self.init_window_settings(window_id)
 
-		window_ids = self.window_ids
-		window_ids.append(window_id)
-		self.window_ids = window_ids
+		restore_windows = self.restore_windows
+		restore_windows.append(window_id)
+		self.restore_windows = restore_windows
 
 		return window_id
 
@@ -130,9 +127,9 @@ class ExMortisSettings(GObject.Object):
 
 		self.reset_window_settings(window_id)
 
-		window_ids = self.window_ids
-		window_ids.remove(window_id)
-		self.window_ids = window_ids
+		restore_windows = self.restore_windows
+		restore_windows.remove(window_id)
+		self.restore_windows = restore_windows
 
 		del self._window_settings[window_id]
 
@@ -140,7 +137,7 @@ class ExMortisSettings(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		window_id_set = set(self.window_ids)
+		window_id_set = set(self.restore_windows)
 		counter = 0
 
 		while True:
