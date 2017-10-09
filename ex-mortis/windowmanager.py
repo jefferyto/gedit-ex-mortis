@@ -305,7 +305,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
-		state.save_active_uri(window)
+		state.save_active_uri(window, tab)
 
 		self.emit('active-tab-changed', window, tab)
 

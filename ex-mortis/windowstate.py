@@ -123,7 +123,7 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		self.save_uris(window)
-		self.save_active_uri(window)
+		self.save_active_uri(window, window.get_active_tab())
 		self.save_size(window)
 		self.save_window_state(window)
 		self.save_side_panel_page_name(window)
@@ -230,7 +230,7 @@ class ExMortisWindowState(GObject.Object):
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("active tab"))
 
-			self.save_active_uri(window, tab)
+			self.save_active_uri(window)
 
 			if forget_tab:
 				self._active_tab = None
@@ -306,18 +306,22 @@ class ExMortisWindowState(GObject.Object):
 
 	# window active uri
 
-	def save_active_uri(self, window, active_tab=None):
+	def save_active_uri(self, window, new_active_tab=None):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, %s", window, active_tab))
+			Gedit.debug_plugin_message(log.format("%s, %s", window, new_active_tab))
 
-		if active_tab is None:
-			active_tab = window.get_active_tab()
+		if new_active_tab:
+			self._active_tab = new_active_tab
 
-		active_uri = get_tab_uri(active_tab) if active_tab else ''
-		if not active_uri:
-			active_uri = ''
+		active_tab = self._active_tab
 
-		self._active_tab = active_tab
+		if not active_tab:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("no active tab"))
+
+			return False
+
+		active_uri = get_tab_uri(active_tab)
 
 		return self.save_property('active-uri', active_uri)
 
