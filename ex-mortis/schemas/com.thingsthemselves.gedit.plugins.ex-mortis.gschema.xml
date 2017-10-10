@@ -59,6 +59,11 @@
 			<summary>Side panel page name</summary>
 			<description>Name of the currently visible side panel page.</description>
 		</key>
+		<key type="i" name="side-panel-size">
+			<default>0</default>
+			<summary>Side panel size</summary>
+			<description>Width of the side panel.</description>
+		</key>
 		<key type="b" name="side-panel-visible">
 			<default>false</default>
 			<summary>Side panel visible</summary>
@@ -69,20 +74,15 @@
 			<summary>Bottom panel page name</summary>
 			<description>Name of the currently visible bottom panel page.</description>
 		</key>
+		<key type="i" name="bottom-panel-size">
+			<default>0</default>
+			<summary>Bottom panel size</summary>
+			<description>Height of the bottom panel.</description>
+		</key>
 		<key type="b" name="bottom-panel-visible">
 			<default>false</default>
 			<summary>Bottom panel visible</summary>
 			<description>Whether the bottom panel is visible or not.</description>
-		</key>
-		<key type="i" name="hpaned-position">
-			<default>0</default>
-			<summary>hpaned position</summary>
-			<description>Position of the hpaned divider.</description>
-		</key>
-		<key type="i" name="vpaned-position">
-			<default>0</default>
-			<summary>vpaned position</summary>
-			<description>Position of the vpaned divider.</description>
 		</key>
 	</schema>
 </schemalist>

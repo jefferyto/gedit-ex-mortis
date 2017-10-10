@@ -39,15 +39,15 @@ class ExMortisWindowState(GObject.Object):
 
 	side_panel_page_name = GObject.Property(type=str, default='')
 
+	side_panel_size = GObject.Property(type=int, default=0)
+
 	side_panel_visible = GObject.Property(type=bool, default=False)
 
 	bottom_panel_page_name = GObject.Property(type=str, default='')
 
+	bottom_panel_size = GObject.Property(type=int, default=0)
+
 	bottom_panel_visible = GObject.Property(type=bool, default=False)
-
-	hpaned_position = GObject.Property(type=int, default=0)
-
-	vpaned_position = GObject.Property(type=int, default=0)
 
 
 	def __init__(self):
@@ -164,18 +164,18 @@ class ExMortisWindowState(GObject.Object):
 		self.save_bottom_panel_page_name(window)
 		self.save_bottom_panel_visible(window)
 
-		self.save_hpaned_position(window)
-		self.save_vpaned_position(window)
+		self.save_side_panel_size(window)
+		self.save_bottom_panel_size(window)
 
-	def apply_window(self, window, skip_size=False):
+	def apply_window(self, window, is_new_window=False):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, skip_size=%s", window, skip_size))
+			Gedit.debug_plugin_message(log.format("%s, is_new_window=%s", window, is_new_window))
 
-		self.apply_uris(window)
-		self.apply_active_uri(window)
+		# need to unmaximize/unfullscreen to set size
+		window.unmaximize()
+		window.unfullscreen()
 
-		if not skip_size:
-			self.apply_size(window)
+		self.apply_size(window, is_new_window)
 		self.apply_window_state(window)
 
 		self.apply_side_panel_page_name(window)
@@ -183,10 +183,15 @@ class ExMortisWindowState(GObject.Object):
 		self.apply_bottom_panel_page_name(window)
 		self.apply_bottom_panel_visible(window)
 
-		self.apply_hpaned_position(window)
-		self.apply_vpaned_position(window)
+		if is_new_window:
+			window.show()
 
-		# after everything that can affect the size of the content area
+		self.apply_side_panel_size(window)
+		self.apply_bottom_panel_size(window)
+
+		self.apply_uris(window)
+		self.apply_active_uri(window)
+
 		self.apply_notebook_widths(window)
 
 
@@ -681,6 +686,30 @@ class ExMortisWindowState(GObject.Object):
 		side_panel.set_visible_child_name(page_name)
 
 
+	# side panel size
+
+	def save_side_panel_size(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+		position = hpaned.get_position()
+
+		return self.save_property('side-panel-size', position)
+
+	def apply_side_panel_size(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		size = self.side_panel_size
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("applying size=%s", size))
+
+		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
+		hpaned.set_position(size)
+
+
 	# side panel visible
 
 	def save_side_panel_visible(self, window):
@@ -738,6 +767,34 @@ class ExMortisWindowState(GObject.Object):
 		bottom_panel.set_visible_child_name(page_name)
 
 
+	# bottom panel size
+
+	def save_bottom_panel_size(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
+		height = vpaned.get_allocation().height
+		position = vpaned.get_position()
+		size = max(height - position, 50)
+
+		return self.save_property('bottom-panel-size', size)
+
+	def apply_bottom_panel_size(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		size = self.bottom_panel_size
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("applying size=%s", size))
+
+		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
+		height = vpaned.get_allocation().height
+		position = max(height - size, 50)
+		vpaned.set_position(position)
+
+
 	# bottom panel visible
 
 	def save_bottom_panel_visible(self, window):
@@ -760,54 +817,6 @@ class ExMortisWindowState(GObject.Object):
 
 		bottom_panel = window.get_bottom_panel()
 		bottom_panel.set_visible(visible)
-
-
-	# hpaned position
-
-	def save_hpaned_position(self, window):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
-
-		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
-		position = hpaned.get_position()
-
-		return self.save_property('hpaned-position', position)
-
-	def apply_hpaned_position(self, window):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
-
-		position = self.hpaned_position
-
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying position=%s", position))
-
-		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
-		hpaned.set_position(position)
-
-
-	# vpaned position
-
-	def save_vpaned_position(self, window):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
-
-		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
-		position = vpaned.get_position()
-
-		return self.save_property('vpaned-position', position)
-
-	def apply_vpaned_position(self, window):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
-
-		position = self.vpaned_position
-
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying position=%s", position))
-
-		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
-		vpaned.set_position(position)
 
 
 def copy_uris(source):

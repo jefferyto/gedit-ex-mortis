@@ -244,27 +244,16 @@ class ExMortisWindowManager(GObject.Object):
 
 		return export_state
 
-	def import_window_state(self, window, import_state, set_default_size=False):
+	def import_window_state(self, window, import_state, is_new_window=False):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, set_default_size=%s", window, set_default_size))
+			Gedit.debug_plugin_message(log.format("%s, is_new_window=%s", window, is_new_window))
 
 		state = self.get_window_state(window)
 
 		if not state:
 			return
 
-		# need to unmaximize/unfullscreen to set size
-		window.unmaximize()
-		window.unfullscreen()
-
-		import_state.apply_size(window, set_default_size)
-
-		window.show()
-
-		# save before maximize/fullscreen later
-		state.save_size(window)
-
-		import_state.apply_window(window, True)
+		import_state.apply_window(window, is_new_window)
 
 	def save_to_window_state(self, window):
 		if log.query(log.INFO):
@@ -378,14 +367,14 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		self.debounce(hpaned, self.debounce_save_hpaned_position, window, state)
+		self.debounce(hpaned, self.debounce_save_side_panel_size, window, state)
 
 	# this signal could be emitted frequently
 	def on_vpaned_notify_position(self, vpaned, pspec, window, state):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		self.debounce(vpaned, self.debounce_save_vpaned_position, window, state)
+		self.debounce(vpaned, self.debounce_save_bottom_panel_size, window, state)
 
 	def on_tab_notify_name(self, tab, pspec, window, state):
 		if log.query(log.INFO):
@@ -414,21 +403,21 @@ class ExMortisWindowManager(GObject.Object):
 
 		return False
 
-	def debounce_save_hpaned_position(self, hpaned, window, state):
+	def debounce_save_side_panel_size(self, hpaned, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		state.save_hpaned_position(window)
+		state.save_side_panel_size(window)
 
 		self.done_debounce(hpaned)
 
 		return False
 
-	def debounce_save_vpaned_position(self, vpaned, window, state):
+	def debounce_save_bottom_panel_size(self, vpaned, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		state.save_vpaned_position(window)
+		state.save_bottom_panel_size(window)
 
 		self.done_debounce(vpaned)
 
