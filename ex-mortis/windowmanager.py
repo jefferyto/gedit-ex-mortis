@@ -234,31 +234,37 @@ class ExMortisWindowManager(GObject.Object):
 		if not state:
 			return None
 
-		export = ExMortisWindowState.clone(state)
+		export_state = ExMortisWindowState.clone(state)
 
 		if forget_notebooks:
-			export.forget_notebooks()
+			export_state.forget_notebooks()
 
 		if forget_tabs:
-			export.forget_tabs()
+			export_state.forget_tabs()
 
-		return export
+		return export_state
 
-	def import_window_state(self, window, state, set_default_size=False):
+	def import_window_state(self, window, import_state, set_default_size=False):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, set_default_size=%s", window, set_default_size))
 
-		if window not in self._windows:
-			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window"))
+		state = self.get_window_state(window)
 
+		if not state:
 			return
 
-		state.apply_size(window, set_default_size)
+		# need to unmaximize/unfullscreen to set size
+		window.unmaximize()
+		window.unfullscreen()
+
+		import_state.apply_size(window, set_default_size)
 
 		window.show()
 
-		state.apply_window(window, True)
+		# save before maximize/fullscreen later
+		state.save_size(window)
+
+		import_state.apply_window(window, True)
 
 	def save_to_window_state(self, window):
 		if log.query(log.INFO):
@@ -396,8 +402,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		if not state.maximized and not state.fullscreen:
-			state.save_size(window)
+		state.save_size(window)
 
 		# we tried tracking notebook size-allocate signals
 		# but when we untrack, the handler was already disconnected for some reason

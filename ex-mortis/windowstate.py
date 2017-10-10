@@ -154,12 +154,16 @@ class ExMortisWindowState(GObject.Object):
 
 		self.update_structure(window)
 		self.save_active_uri(window, window.get_active_tab())
-		self.save_size(window)
+
+		# window state affects whether size is saved or not
 		self.save_window_state(window)
+		self.save_size(window)
+
 		self.save_side_panel_page_name(window)
 		self.save_side_panel_visible(window)
 		self.save_bottom_panel_page_name(window)
 		self.save_bottom_panel_visible(window)
+
 		self.save_hpaned_position(window)
 		self.save_vpaned_position(window)
 
@@ -169,13 +173,16 @@ class ExMortisWindowState(GObject.Object):
 
 		self.apply_uris(window)
 		self.apply_active_uri(window)
+
 		if not skip_size:
 			self.apply_size(window)
 		self.apply_window_state(window)
+
 		self.apply_side_panel_page_name(window)
 		self.apply_side_panel_visible(window)
 		self.apply_bottom_panel_page_name(window)
 		self.apply_bottom_panel_visible(window)
+
 		self.apply_hpaned_position(window)
 		self.apply_vpaned_position(window)
 
@@ -536,7 +543,40 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		width, height = window.get_size()
+		# gedit should (always?) set a default size
+		# if it hasn't been set on this window yet,
+		# get_size() will return a wrong size
+
+		default_width, default_height = window.get_default_size()
+
+		if default_width == -1 and default_height == -1:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("default size not set"))
+
+			return False
+
+		width = 0
+		height = 0
+
+		if not self.maximized and not self.fullscreen:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("using get_size()"))
+
+			width, height = window.get_size()
+
+		# if we haven't saved before, try default size
+		elif not self.width and not self.height:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("using get_default_size()"))
+
+			width = default_width
+			height = default_height
+
+		if not width or not height:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("no size to save"))
+
+			return False
 
 		results = [
 			self.save_property('width', width),
