@@ -225,9 +225,9 @@ class ExMortisWindowManager(GObject.Object):
 
 		return state
 
-	def export_window_state(self, window, forget_tabs=False):
+	def export_window_state(self, window, forget_notebooks=False, forget_tabs=False):
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s, forget_tabs=%s", window, forget_tabs))
+			Gedit.debug_plugin_message(log.format("%s, forget_notebooks=%s, forget_tabs=%s", window, forget_notebooks, forget_tabs))
 
 		state = self.get_window_state(window)
 
@@ -235,6 +235,9 @@ class ExMortisWindowManager(GObject.Object):
 			return None
 
 		export = ExMortisWindowState.clone(state)
+
+		if forget_notebooks:
+			export.forget_notebooks()
 
 		if forget_tabs:
 			export.forget_tabs()
@@ -395,6 +398,12 @@ class ExMortisWindowManager(GObject.Object):
 
 		if not state.maximized and not state.fullscreen:
 			state.save_size(window)
+
+		# we tried tracking notebook size-allocate signals
+		# but when we untrack, the handler was already disconnected for some reason
+		# and there were gtk assertions that repeatedly failed
+		# so just call this here
+		state.save_notebook_widths(window)
 
 		self.done_debounce(window)
 

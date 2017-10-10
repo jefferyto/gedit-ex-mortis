@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, Gdk, Gio, Gedit
+from gi.repository import GObject, Gtk, Gdk, Gio, Gedit
 from . import log
 
 
@@ -53,9 +53,13 @@ class ExMortisWindowState(GObject.Object):
 	def __init__(self):
 		GObject.Object.__init__(self)
 
+		self._notebook_map = {}
 		self._tab_map = {}
+		self._restore_filter = []
 		self._uris = []
 		self._restore_uris = []
+		self._notebook_widths = []
+		self._restore_notebook_widths = []
 		self._active_tab = None
 
 
@@ -68,10 +72,12 @@ class ExMortisWindowState(GObject.Object):
 		for param in cls.list_properties():
 			clone.set_property(param.name, source.get_property(param.name))
 
+		clone._notebook_map = dict(source._notebook_map)
 		clone._tab_map = dict(source._tab_map)
 		clone._active_tab = source._active_tab
 
 		clone.uris = source.uris
+		clone.notebook_widths = source.notebook_widths
 
 		return clone
 
@@ -95,6 +101,23 @@ class ExMortisWindowState(GObject.Object):
 	def restore_uris(self):
 		return copy_uris(self._restore_uris)
 
+	@property
+	def notebook_widths(self):
+		return list(self._notebook_widths)
+
+	@notebook_widths.setter
+	def notebook_widths(self, value):
+		notebook_widths = list(value)
+
+		if notebook_widths != self._notebook_widths:
+			self._notebook_widths = notebook_widths
+
+			self.emit('notebook-widths-changed')
+
+	@property
+	def restore_notebook_widths(self):
+		return list(self._restore_notebook_widths)
+
 
 	# signals
 
@@ -104,7 +127,23 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format(""))
 
 		filtered = [[uri for uri in uris if uri] for uris in self._uris]
+
 		self._restore_uris = [uris for uris in filtered if uris]
+
+		restore_filter = [bool(uris) for uris in filtered]
+
+		if restore_filter != self._restore_filter:
+			self._restore_filter = restore_filter
+
+			self.emit('notebook-widths-changed')
+
+	@GObject.Signal
+	def notebook_widths_changed(self):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format(""))
+
+		zipped = zip(self._restore_filter, self._notebook_widths)
+		self._restore_notebook_widths = [width for can_restore, width in zipped if can_restore]
 
 
 	# saving / applying windows
@@ -140,6 +179,9 @@ class ExMortisWindowState(GObject.Object):
 		self.apply_hpaned_position(window)
 		self.apply_vpaned_position(window)
 
+		# after everything that can affect the size of the content area
+		self.apply_notebook_widths(window)
+
 
 	# property helpers
 
@@ -170,10 +212,12 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		prev_uris = self._uris
+		prev_notebook_widths = self._notebook_widths
 
 		notebook_map = {}
 		tab_map = {}
 		uris = []
+		notebook_widths = []
 
 		for document in window.get_documents():
 			tab = Gedit.Tab.get_from_document(document)
@@ -182,6 +226,7 @@ class ExMortisWindowState(GObject.Object):
 			if notebook not in notebook_map:
 				notebook_map[notebook] = len(uris)
 				uris.append([])
+				notebook_widths.append(0)
 
 			notebook_index = notebook_map[notebook]
 			notebook_uris = uris[notebook_index]
@@ -191,28 +236,49 @@ class ExMortisWindowState(GObject.Object):
 
 			tab_map[tab] = (notebook_index, tab_index)
 
+		self._notebook_map = notebook_map
 		self._tab_map = tab_map
 		self._uris = uris
+		self._notebook_widths = notebook_widths
 
 		self.save_uris(window, True)
+		self.save_notebook_widths(window, True)
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("uris=%s", uris))
+			Gedit.debug_plugin_message(log.format("uris=%s, notebook_widths=%s", uris, notebook_widths))
 
-		if uris == prev_uris:
+		if uris == prev_uris and notebook_widths == prev_notebook_widths:
 			if log.query(log.DEBUG):
 				Gedit.debug_plugin_message(log.format("no change"))
 
 			return False
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("prev uris=%s", prev_uris))
+		if uris != prev_uris:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("prev uris=%s", prev_uris))
 
-		self._uris = uris
+			self.emit('uris-changed')
 
-		self.emit('uris-changed')
+		if notebook_widths != prev_notebook_widths:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("prev notebook_widths=%s", prev_notebook_widths))
+
+			self.emit('notebook-widths-changed')
 
 		return True
+
+	def forget_notebooks(self):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format(""))
+
+		self._notebook_map = {}
+
+	def forget_notebook(self, notebook):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", notebook))
+
+		if notebook in self._notebook_map:
+			del self._notebook_map[notebook]
 
 	def forget_tabs(self):
 		if log.query(log.INFO):
@@ -312,6 +378,108 @@ class ExMortisWindowState(GObject.Object):
 				Gedit.commands_load_locations(window, locations, None, 0, 0)
 
 				create_notebook = True
+
+
+	# window notebook widths
+
+	def save_notebook_widths(self, window, bulk_update=False):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
+
+		results = [self.save_notebook_width(window, notebook, True) for notebook in self._notebook_map.keys()]
+		changed = any(results)
+
+		if not bulk_update and changed:
+			self.emit('notebook-widths-changed')
+
+		return changed
+
+	def save_notebook_width(self, window, notebook, bulk_update=False):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s, bulk_update=%s", window, notebook, bulk_update))
+
+		if notebook not in self._notebook_map:
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.format("not in notebook map"))
+
+			return False
+
+		notebook_index = self._notebook_map[notebook]
+
+		prev_notebook_width = self._notebook_widths[notebook_index]
+
+		notebook_width = notebook.get_allocation().width
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("notebook_width=%s", notebook_width))
+
+		if notebook_width == prev_notebook_width:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("no change"))
+
+			return False
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("prev notebook_width=%s", prev_notebook_width))
+
+		self._notebook_widths[notebook_index] = notebook_width
+
+		if not bulk_update:
+			self.emit('notebook-widths-changed')
+
+		return True
+
+	def apply_notebook_widths(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		# this only works with the notebook structure created by apply_uris()
+
+		notebook_widths = list(self._notebook_widths)
+		notebooks = []
+		notebooks_set = set()
+
+		if len(notebook_widths) < 2:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("have %s notebook widths, not enough to apply", len(notebook_widths)))
+
+			return
+
+		for document in window.get_documents():
+			notebook = Gedit.Tab.get_from_document(document).get_parent()
+
+			if notebook not in notebooks_set:
+				notebooks.append(notebook)
+				notebooks_set.add(notebook)
+
+		if len(notebooks) < 2:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("have %s notebooks, not enough to apply", len(notebooks)))
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("applying notebook_widths=%s", notebook_widths))
+
+		min_len = min(len(notebooks), len(notebook_widths))
+
+		# we won't set the width of the last notebook
+		zipped = zip(notebooks[-min_len:-1], notebook_widths[-min_len:-1])
+
+		for notebook, notebook_width in zipped:
+			parent = notebook.get_parent()
+
+			if not isinstance(parent, Gtk.Paned):
+				if log.query(log.DEBUG):
+					Gedit.debug_plugin_message(log.format("parent %s of notebook %s is not a Gtk.Paned", parent, notebook))
+
+				continue
+
+			if parent.get_child2() == notebook:
+				if log.query(log.DEBUG):
+					Gedit.debug_plugin_message(log.format("notebook %s is not the left child of parent %s", notebook, parent))
+
+				continue
+
+			parent.set_position(notebook_width)
 
 
 	# window active uri

@@ -121,9 +121,18 @@ class QuittingMixin(object):
 				Gio.SettingsBindFlags.SET
 			)
 
-		connect_handlers(self, state, ['uris-changed'], 'window_state', window_settings)
+		connect_handlers(
+			self, state,
+			[
+				'uris-changed',
+				'notebook-widths-changed'
+			],
+			'window_state',
+			window_settings
+		)
 
 		self.on_window_state_uris_changed(state, window_settings)
+		self.on_window_state_notebook_widths_changed(state, window_settings)
 
 	def unbind_window_settings(self, window_manager, settings, window):
 		if log.query(log.INFO):
@@ -170,6 +179,9 @@ class QuittingMixin(object):
 	def on_window_state_uris_changed(self, state, window_settings):
 		window_settings['uris'] = state.restore_uris
 
+	def on_window_state_notebook_widths_changed(self, state, window_settings):
+		window_settings['notebook-widths'] = state.restore_notebook_widths
+
 
 	# quitting
 
@@ -187,7 +199,7 @@ class QuittingMixin(object):
 		app = Gedit.App.get_default()
 
 		self._quitting = {
-			window : window_manager.export_window_state(window)
+			window : window_manager.export_window_state(window, True)
 			for window in app.get_main_windows()
 		}
 
@@ -257,6 +269,7 @@ class QuittingMixin(object):
 						window_settings[param.name] = state.get_property(param.name)
 
 					window_settings['uris'] = state.restore_uris
+					window_settings['notebook-widths'] = state.restore_notebook_widths
 
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("saving %s windows", len(settings.restore_windows)))
@@ -293,6 +306,7 @@ class QuittingMixin(object):
 					)
 
 				state.uris = window_settings['uris']
+				state.notebook_widths = window_settings['notebook-widths']
 
 				if state.restore_uris:
 					states.append(state)

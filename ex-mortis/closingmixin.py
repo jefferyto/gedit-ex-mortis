@@ -53,7 +53,7 @@ class ClosingMixin(object):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("already started closing window"))
 
-		self._closing[window] = window_manager.export_window_state(window)
+		self._closing[window] = window_manager.export_window_state(window, True)
 
 	# can be called on non-closing windows
 	def cancel_closing(self, window):
