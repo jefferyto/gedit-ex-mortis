@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, GLib, Gedit
+from gi.repository import GObject, GLib, Gtk, Gedit
 from .windowstate import ExMortisWindowState
 from .utils import connect_handlers, disconnect_handlers
 from . import log
@@ -95,6 +95,7 @@ class ExMortisWindowManager(GObject.Object):
 		state = ExMortisWindowState()
 		state.save_window(window)
 
+		multi_notebook = window.get_template_child(Gedit.Window, 'multi_notebook')
 		side_panel = window.get_side_panel()
 		bottom_panel = window.get_bottom_panel()
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
@@ -107,11 +108,20 @@ class ExMortisWindowManager(GObject.Object):
 				'tab-removed',
 				'tabs-reordered',
 				'active-tab-changed',
-				'size-allocate',
+				'configure-event',
 				'window-state-event',
 			],
 			'window',
 			state
+		)
+		connect_handlers(
+			self, multi_notebook,
+			[
+				'notebook-added',
+				'notebook-removed'
+			],
+			'multi_notebook',
+			window, state
 		)
 		connect_handlers(
 			self, side_panel,
@@ -151,12 +161,16 @@ class ExMortisWindowManager(GObject.Object):
 		self._windows[window] = (
 			state,
 			{
+				'multi_notebook': multi_notebook,
 				'side_panel': side_panel,
 				'bottom_panel': bottom_panel,
 				'hpaned': hpaned,
 				'vpaned': vpaned
 			}
 		)
+
+		for paned in self.find_paneds(multi_notebook):
+			self.track_paned(window, paned, state, multi_notebook)
 
 		for document in window.get_documents():
 			self.track_tab(window, Gedit.Tab.get_from_document(document), state)
@@ -172,23 +186,46 @@ class ExMortisWindowManager(GObject.Object):
 			return
 
 		state, widgets = self._windows[window]
+		multi_notebook = widgets['multi_notebook']
 		hpaned = widgets['hpaned']
 		vpaned = widgets['vpaned']
 
 		for document in window.get_documents():
 			self.untrack_tab(window, Gedit.Tab.get_from_document(document), state)
 
+		for paned in self.find_paneds(multi_notebook):
+			self.untrack_paned(window, paned, state, multi_notebook)
+
 		self.cancel_debounce(window)
+		self.cancel_debounce(multi_notebook)
 		self.cancel_debounce(hpaned)
 		self.cancel_debounce(vpaned)
 
 		disconnect_handlers(self, window)
+		disconnect_handlers(self, multi_notebook)
 		disconnect_handlers(self, widgets['side_panel'])
 		disconnect_handlers(self, widgets['bottom_panel'])
 		disconnect_handlers(self, hpaned)
 		disconnect_handlers(self, vpaned)
 
 		del self._windows[window]
+
+	def track_paned(self, window, paned, state, multi_notebook):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, paned))
+
+		connect_handlers(
+			self, paned,
+			['notify::position'],
+			'paned',
+			window, state, multi_notebook
+		)
+
+	def untrack_paned(self, window, paned, state, multi_notebook):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, paned))
+
+		disconnect_handlers(self, paned)
 
 	def track_tab(self, window, tab, state):
 		if log.query(log.INFO):
@@ -201,6 +238,22 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		disconnect_handlers(self, tab)
+
+	def find_paneds(self, root):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", root))
+
+		stack = root.get_children()
+		results = []
+
+		while stack:
+			widget = stack.pop()
+
+			if isinstance(widget, Gtk.Paned):
+				results.append(widget)
+				stack.extend(widget.get_children())
+
+		return results
 
 
 	# window state
@@ -325,8 +378,8 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.emit('active-tab-changed', window, tab)
 
-	# this signal is emitted way too frequently
-	def on_window_size_allocate(self, window, allocation, state):
+	# this signal could be emitted frequently
+	def on_window_configure_event(self, window, event, state):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
@@ -337,6 +390,22 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_window_state(window, event.new_window_state)
+
+	def on_multi_notebook_notebook_added(self, multi_notebook, notebook, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, notebook))
+
+		self.track_paned(window, notebook.get_parent(), state, multi_notebook)
+
+		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
+
+	def on_multi_notebook_notebook_removed(self, multi_notebook, notebook, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, notebook))
+
+		# can't untrack_paned() since the notebook is already disconnected and the paned gone
+
+		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
 
 	def on_side_panel_notify_visible_child_name(self, side_panel, pspec, window, state):
 		if log.query(log.INFO):
@@ -376,6 +445,13 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.debounce(vpaned, self.debounce_save_bottom_panel_size, window, state)
 
+	# this signal could be emitted frequently
+	def on_paned_notify_position(self, paned, pspec, window, state, multi_notebook):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, paned))
+
+		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
+
 	def on_tab_notify_name(self, tab, pspec, window, state):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
@@ -392,12 +468,6 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_size(window)
-
-		# we tried tracking notebook size-allocate signals
-		# but when we untrack, the handler was already disconnected for some reason
-		# and there were gtk assertions that repeatedly failed
-		# so just call this here
-		state.save_notebook_widths(window)
 
 		self.done_debounce(window)
 
@@ -420,6 +490,16 @@ class ExMortisWindowManager(GObject.Object):
 		state.save_bottom_panel_size(window)
 
 		self.done_debounce(vpaned)
+
+		return False
+
+	def debounce_save_notebook_widths(self, multi_notebook, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		state.save_notebook_widths(window)
+
+		self.done_debounce(multi_notebook)
 
 		return False
 
