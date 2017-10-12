@@ -43,9 +43,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
-		windows = self._windows.keys()
-
-		for window in windows:
+		for window in list(self._windows.keys()):
 			self.untrack_window(window)
 
 		self._windows = None
