@@ -80,7 +80,10 @@ class QuittingMixin(object):
 		app = Gedit.App.get_default()
 
 		for window in app.get_main_windows():
-			self.unbind_window_settings(window_manager, settings, window)
+			try:
+				self.unbind_window_settings(window_manager, settings, window)
+			except ValueError: # gedit 3.14
+				pass
 
 		self._window_ids = None
 
@@ -113,7 +116,12 @@ class QuittingMixin(object):
 
 			return
 
-		for param in state.list_properties(): # actually a class method
+		try:
+			params = state.list_properties()
+		except AttributeError: # gedit 3.12
+			params = GObject.list_properties(state)
+
+		for param in params:
 			# this also immediately sets the settings based on the state values
 			window_settings.bind(
 				param.name,
@@ -167,8 +175,16 @@ class QuittingMixin(object):
 
 			return
 
-		for param in state.list_properties(): # actually a class method
-			window_settings.unbind(state, param.name)
+		try:
+			params = state.list_properties()
+		except AttributeError: # gedit 3.12
+			params = GObject.list_properties(state)
+
+		for param in params:
+			try:
+				window_settings.unbind(state, param.name)
+			except ValueError: # gedit 3.14
+				pass
 
 		disconnect_handlers(self, state)
 
@@ -265,7 +281,12 @@ class QuittingMixin(object):
 							Gedit.debug_plugin_message(log.format("could not get window settings"))
 						continue
 
-					for param in state.list_properties(): # actually a class method
+					try:
+						params = state.list_properties()
+					except AttributeError: # gedit 3.12
+						params = GObject.list_properties(state)
+
+					for param in params:
 						window_settings[param.name] = state.get_property(param.name)
 
 					window_settings['uris'] = state.restore_uris
@@ -300,7 +321,12 @@ class QuittingMixin(object):
 						Gedit.debug_plugin_message(log.format("could not get window settings"))
 					continue
 
-				for param in state.list_properties(): # actually a class method
+				try:
+					params = state.list_properties()
+				except AttributeError: # gedit 3.12
+					params = GObject.list_properties(state)
+
+				for param in params:
 					state.set_property(
 						param.name, window_settings[param.name]
 					)

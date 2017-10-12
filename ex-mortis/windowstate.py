@@ -69,7 +69,12 @@ class ExMortisWindowState(GObject.Object):
 	def clone(cls, source):
 		clone = cls()
 
-		for param in cls.list_properties():
+		try:
+			params = cls.list_properties()
+		except AttributeError: # gedit 3.12
+			params = GObject.list_properties(cls)
+
+		for param in params:
 			clone.set_property(param.name, source.get_property(param.name))
 
 		clone._notebook_map = dict(source._notebook_map)
@@ -823,6 +828,10 @@ def copy_uris(source):
 	return [[uri for uri in uris] for uris in source]
 
 def get_tab_uri(tab):
-	location = tab.get_document().get_file().get_location()
+	document = tab.get_document()
+	try:
+		location = document.get_file().get_location()
+	except AttributeError: # gedit 3.12
+		location = document.get_location()
 	return location.get_uri() if location else ''
 

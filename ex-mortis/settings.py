@@ -62,7 +62,12 @@ class ExMortisSettings(GObject.Object):
 		)
 
 		if settings:
-			for param in self.list_properties():
+			try:
+				params = self.list_properties()
+			except AttributeError: # gedit 3.12
+				params = GObject.list_properties(self)
+
+			for param in params:
 				settings.bind(
 					param.name,
 					self, param.name,
@@ -83,8 +88,16 @@ class ExMortisSettings(GObject.Object):
 		settings = self._settings
 
 		if settings:
-			for param in self.list_properties():
-				settings.unbind(self, param.name)
+			try:
+				params = self.list_properties()
+			except AttributeError: # gedit 3.12
+				params = GObject.list_properties(self)
+
+			for param in params:
+				try:
+					settings.unbind(self, param.name)
+				except ValueError: # gedit 3.14
+					pass
 
 		self._schema_source = None
 		self._settings = None
