@@ -104,13 +104,13 @@ class ClosingMixin(object):
 
 		if state.restore_uris:
 			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("window has reopenable files, caching"))
+				Gedit.debug_plugin_message(log.format("caching window info"))
 
 			self._closed.append(state)
 
 		else:
 			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("window does not have reopenable files, ignoring"))
+				Gedit.debug_plugin_message(log.format("not caching window info"))
 
 		del self._closing[window]
 
