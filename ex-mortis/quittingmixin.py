@@ -32,7 +32,7 @@ class QuittingMixin(object):
 
 		self._window_ids = {} if is_saving_window_states else None
 		self._quitting = None
-		self._restore_windows = {}
+		self._restore_windows = None
 
 	def do_deactivate_quitting(self):
 		if log.query(log.INFO):
@@ -288,6 +288,7 @@ class QuittingMixin(object):
 			Gedit.debug_plugin_message(log.format("do_restore=%s", do_restore))
 
 		states = []
+		windows = []
 
 		for window_id in list(settings.restore_windows):
 			if do_restore:
@@ -333,18 +334,80 @@ class QuittingMixin(object):
 				if state.height > screen_height:
 					state.height = screen_height
 
-				window = window_manager.open_new_window_with_window_state(state)
+				windows.append(window_manager.open_new_window_with_window_state(state))
 
-				# the window manager can choose to make another window active
-				# rather than the active window at the end of this process
-				# so listen for new tab on all windows
-				self._restore_windows[window] = window.connect(
-					'tab-added', self.on_restore_window_tab_added, state
-				)
+			self._restore_windows = {}
+
+			# the window manager can choose to make another window active
+			# rather than the active window at the end of this process
+			# so listen for new tab on all windows
+			for window, state in zip(windows, states):
+				self.setup_restore_window(window, state)
 
 		else:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("not restoring windows"))
+
+	def setup_restore_window(self, window, state=None):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		if self._restore_windows is None:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("not handling restore windows"))
+
+			return
+
+		if window in self._restore_windows:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("restore window already set up"))
+
+			return
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("setting up restore window"))
+
+		self._restore_windows[window] = window.connect(
+			'tab-added', self.on_restore_window_tab_added, state
+		)
+
+	def teardown_restore_windows(self):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format(""))
+
+		if self._restore_windows is None:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("not handling restore windows"))
+
+			return
+
+		for window in list(self._restore_windows.keys()):
+			self.teardown_restore_window(window)
+
+		self._restore_windows = None
+
+	def teardown_restore_window(self, window):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", window))
+
+		if self._restore_windows is None:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("not handling restore windows"))
+
+			return
+
+		if window not in self._restore_windows:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("not restore window or restore window already torn down"))
+
+			return
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("tearing down restore window"))
+
+		window.disconnect(self._restore_windows[window])
+
+		del self._restore_windows[window]
 
 	def on_restore_window_tab_added(self, window, tab, state):
 		if log.query(log.INFO):
@@ -358,7 +421,10 @@ class QuittingMixin(object):
 			def close_tab():
 				window.close_tab(tab)
 
-				if state:
+				if not window.get_active_tab():
+					window.close()
+
+				elif state:
 					state.apply_active_uri(window)
 
 				return False
@@ -370,30 +436,4 @@ class QuittingMixin(object):
 				Gedit.debug_plugin_message(log.format("new tab is not untouched"))
 
 		self.teardown_restore_windows()
-
-	def teardown_restore_windows(self):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format(""))
-
-		for window in list(self._restore_windows.keys()):
-			self.teardown_restore_window(window)
-
-	def teardown_restore_window(self, window):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window))
-
-		if window not in self._restore_windows:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not restore window or restore window already torn down"))
-
-			return
-
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("tearing down restore window"))
-
-		handler_id = self._restore_windows[window]
-
-		window.disconnect(handler_id)
-
-		del self._restore_windows[window]
 

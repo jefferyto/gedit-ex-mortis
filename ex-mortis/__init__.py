@@ -221,6 +221,8 @@ class ExMortisAppActivatable(
 
 		window_manager.track_window(window)
 
+		self.setup_restore_window(window)
+
 		if self.is_saving_window_states():
 			self.bind_window_settings(window_manager, settings, window)
 
