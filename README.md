@@ -1,7 +1,6 @@
 # Ex-Mortis, a plugin for gedit
 
-Reopen closed windows and optionally restore opened windows from the
-previous session  
+Reopen closed windows and optionally restore windows between sessions  
 <https://github.com/jefferyto/gedit-ex-mortis>  
 0.1.0
 
@@ -21,16 +20,16 @@ This plugin requires gedit 3.12 or newer.
     gedit's **Preferences** window.
 4.  Restart gedit again, preferably using **Quit** in the Application
     menu or the File menu. This is necessary because the plugin cannot
-    reopen any windows that are open when the plugin was activated.
+    reopen any windows that were open when the plugin was activated.
 
 ## Usage
 
 *   This plugin adds a new **Reopen Closed Window** menu item, following
     **New Window** in either the Application menu or the File menu.
 
-    This menu item will reopen the most recently closed window in the
-    current session; if there are no closed windows in the current
-    session, the menu item will be disabled.
+    Activating this menu item will reopen the most recently closed
+    window in the current session; if there are no closed windows, the
+    menu item will be disabled.
 
     This menu item can also be activated from the keyboard with
     <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>
