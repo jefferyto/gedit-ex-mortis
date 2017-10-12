@@ -317,7 +317,23 @@ class QuittingMixin(object):
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("restoring %s windows", len(states)))
 
+			screen_width = window_manager.get_screen_width()
+			screen_height = window_manager.get_screen_height()
+
 			for state in states:
+				# when gedit goes to open the first blank tab,
+				# it tries to find an active window first
+				# but it tests for windows in the current screen/workspace/viewport
+				# which is in part based on the size of the window
+				# so we need to shrink our windows here to fit the screen,
+				# otherwise gedit will think they are in a different viewport
+				# if the window is too large for the screen,
+				# the window manager will (probably?) resize the window to fit anyway
+				if state.width > screen_width:
+					state.width = screen_width
+				if state.height > screen_height:
+					state.height = screen_height
+
 				window = window_manager.open_new_window_with_window_state(state)
 				windows[window] = state
 

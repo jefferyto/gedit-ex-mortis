@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, GLib, Gtk, Gedit
+from gi.repository import GObject, GLib, Gtk, Gdk, Gedit
 from .windowstate import ExMortisWindowState
 from .utils import connect_handlers, disconnect_handlers
 from . import log
@@ -528,4 +528,35 @@ class ExMortisWindowManager(GObject.Object):
 
 		if obj in self._debounce_ids:
 			del self._debounce_ids[obj]
+
+
+	# screen info
+
+	def get_screen_width(self, screen=None):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", screen))
+
+		if not screen:
+			screen = Gdk.Screen.get_default()
+
+		width = screen.get_width()
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("width=%s", width))
+
+		return width
+
+	def get_screen_height(self, screen=None):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s", screen))
+
+		if not screen:
+			screen = Gdk.Screen.get_default()
+
+		height = screen.get_height()
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("height=%s", height))
+
+		return height
 
