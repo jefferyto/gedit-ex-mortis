@@ -10,16 +10,13 @@ at the [project issue tracker][].
 
 ## Requirements
 
-This plugin requires gedit 3.
+This plugin requires gedit 3.12 or newer.
 
 ## Installation
 
 1.  Download the source code (as [zip][] or [tar.gz][]) and extract.
-2.  Copy the `ex-mortis` folder and the appropriate `.plugin` file
-    into `~/.local/share/gedit/plugins` (create if it does not exist):
-    *   For gedit 3.6 and earlier, copy `ex-mortis.plugin.python2` and
-        rename to `ex-mortis.plugin`.
-    *   For gedit 3.8 and later, copy `ex-mortis.plugin`.
+2.  Copy the `ex-mortis` folder and the `ex-mortis.plugin` file into
+    `~/.local/share/gedit/plugins` (create if it does not exist).
 3.  Restart gedit, then enable the plugin in the **Plugins** tab in
     gedit's **Preferences** window.
 4.  Restart gedit again, preferably using **Quit** in the Application
