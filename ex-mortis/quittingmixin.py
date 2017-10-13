@@ -353,11 +353,13 @@ class QuittingMixin(object):
 				# which is in part based on the size of the window
 				# so we need to shrink our windows here to fit the screen,
 				# otherwise gedit will think they are in a different viewport
-				# if the window is too large for the screen,
-				# the window manager will (probably?) resize the window to fit anyway
+				# (if the window is too large for the screen,
+				# the window manager will probably resize the window to fit anyway)
 				if state.width > screen_width:
+					state.side_panel_size = round((state.side_panel_size / state.width) * screen_width)
 					state.width = screen_width
 				if state.height > screen_height:
+					state.bottom_panel_size = round((state.bottom_panel_size / state.height) * screen_height)
 					state.height = screen_height
 
 				windows.append(window_manager.open_new_window_with_window_state(state))
