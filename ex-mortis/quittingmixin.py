@@ -452,6 +452,7 @@ class QuittingMixin(object):
 
 				elif state:
 					state.apply_active_uri(window)
+					state.apply_notebook_widths(window)
 
 				return False
 
