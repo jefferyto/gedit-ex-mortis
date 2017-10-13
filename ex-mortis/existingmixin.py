@@ -85,8 +85,9 @@ class ExistingMixin(object):
 		primary_label.set_can_focus(True)
 		primary_label.set_selectable(True)
 
+		secondary_text_pref = _("Restore windows between sessions")
 		secondary_text_menu = _("Application menu") if is_app_menu else _("File menu")
-		secondary_text = _("To restore this window, enable \"Restore windows between sessions\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the {menu_name} or in this message.").format(menu_name=secondary_text_menu)
+		secondary_text = _("To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the {menu_name} or in this message.").format(pref_name=secondary_text_pref, menu_name=secondary_text_menu)
 		secondary_markup = "<small>{}</small>".format(secondary_text)
 
 		secondary_label = Gtk.Label.new(secondary_markup)
