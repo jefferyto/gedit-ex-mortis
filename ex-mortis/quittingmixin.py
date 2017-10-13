@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GLib, Gio, Gedit
+from gi.repository import GObject, GLib, Gio, Gedit
 from .utils import connect_handlers, disconnect_handlers
 from . import log
 
