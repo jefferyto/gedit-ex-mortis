@@ -434,6 +434,7 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 
 	__gtype_name__ = 'ExMortisConfigurable'
 
+
 	def do_create_configure_widget(self):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
@@ -454,8 +455,10 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 			widget.set_active(settings.restore_between_sessions)
 
 		else:
-			widget = Gtk.Box()
-			widget.add(Gtk.Label.new(_("Could not load settings schema")))
+			label = Gtk.Label.new(_("Could not load settings schema"))
+
+			widget = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+			widget.add(label)
 
 		widget.set_border_width(5)
 
