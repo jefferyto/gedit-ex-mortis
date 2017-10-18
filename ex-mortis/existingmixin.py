@@ -29,8 +29,7 @@ LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
 try:
 	import gettext
 	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
-	gettext.textdomain('gedit-ex-mortis')
-	_ = gettext.gettext
+	_ = lambda s: gettext.dgettext('gedit-ex-mortis', s)
 except:
 	_ = lambda s: s
 
