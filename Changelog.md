@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 (2018-03-13)
 * Fixed auto-closing gedit if there are no windows to restore (#1)
 * Fixed (potentially) affecting the translations of other plugins
 
