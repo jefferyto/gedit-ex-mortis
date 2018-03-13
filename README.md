@@ -62,7 +62,7 @@ Inspired by:
 
 ## License
 
-Copyright &copy; 2017 Jeffery To <jeffery.to@gmail.com>
+Copyright &copy; 2017-2018 Jeffery To <jeffery.to@gmail.com>
 
 Available under GNU General Public License version 3
 
