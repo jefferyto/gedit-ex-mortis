@@ -452,16 +452,14 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 			)
 
 			widget.set_active(settings.restore_between_sessions)
+			widget._settings = settings
 
 		else:
-			label = Gtk.Label.new(_("Could not load settings schema"))
+			widget = Gtk.Label.new(_("Could not load settings schema"))
 
-			widget = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-			widget.add(label)
+		box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+		box.set_border_width(5)
+		box.add(widget)
 
-		widget.set_border_width(5)
-
-		widget._settings = settings
-
-		return widget
+		return box
 
