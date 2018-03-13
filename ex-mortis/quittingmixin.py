@@ -3,7 +3,7 @@
 # quittingmixin.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -339,7 +339,7 @@ class QuittingMixin(object):
 
 			settings.remove_window(window_id)
 
-		if do_restore:
+		if do_restore and states:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("restoring %s windows", len(states)))
 
@@ -372,9 +372,13 @@ class QuittingMixin(object):
 			for window, state in zip(windows, states):
 				self.setup_restore_window(window, state)
 
-		else:
+		elif not do_restore:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("not restoring windows"))
+
+		else:
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.format("no windows to restore"))
 
 	def setup_restore_window(self, window, state=None):
 		if log.query(log.INFO):

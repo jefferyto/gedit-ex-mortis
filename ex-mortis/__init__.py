@@ -3,7 +3,7 @@
 # __init__.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -39,8 +39,7 @@ LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
 try:
 	import gettext
 	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
-	gettext.textdomain('gedit-ex-mortis')
-	_ = gettext.gettext
+	_ = lambda s: gettext.dgettext('gedit-ex-mortis', s)
 except:
 	_ = lambda s: s
 
@@ -434,6 +433,7 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 
 	__gtype_name__ = 'ExMortisConfigurable'
 
+
 	def do_create_configure_widget(self):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
@@ -452,14 +452,14 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 			)
 
 			widget.set_active(settings.restore_between_sessions)
+			widget._settings = settings
 
 		else:
-			widget = Gtk.Box()
-			widget.add(Gtk.Label.new(_("Could not load settings schema")))
+			widget = Gtk.Label.new(_("Could not load settings schema"))
 
-		widget.set_border_width(5)
+		box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+		box.set_border_width(5)
+		box.add(widget)
 
-		widget._settings = settings
-
-		return widget
+		return box
 

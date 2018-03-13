@@ -3,7 +3,7 @@
 # log.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -97,14 +97,13 @@ def query(log_level):
 
 	return highest(log_level) <= output_level
 
-def prefix(log_level=None):
+def name(log_level=None):
 	if log_level is None:
 		log_level = last_queried_level
 
-	name = LEVELS_TO_NAMES[highest(log_level)] if log_level is not None else 'unknown'
-
-	return '[' + name + '] '
+	return LEVELS_TO_NAMES[highest(log_level)] if log_level is not None else 'unknown'
 
 def format(message, *args):
-	return prefix() + (message % tuple(debug_str(arg) for arg in args))
+	msg = message % tuple(debug_str(arg) for arg in args)
+	return "[%s] %s" % (name(), msg)
 

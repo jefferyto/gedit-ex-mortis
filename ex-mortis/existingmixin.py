@@ -3,7 +3,7 @@
 # existingmixin.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -29,8 +29,7 @@ LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
 try:
 	import gettext
 	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
-	gettext.textdomain('gedit-ex-mortis')
-	_ = gettext.gettext
+	_ = lambda s: gettext.dgettext('gedit-ex-mortis', s)
 except:
 	_ = lambda s: s
 
