@@ -23,8 +23,8 @@ This plugin requires gedit 3.12 or newer.
     reopen any windows that were open when the plugin was activated.
 
 If you have previously activated the Dashboard plugin (part of the
-gedit-plugins package), you may want to deactivate it as it may conflict
-with this plugin (#2).
+gedit-plugins package), you may want to deactivate it as it may
+[conflict][dashboard-conflict] with this plugin.
 
 ## Usage
 
@@ -74,5 +74,6 @@ Available under GNU General Public License version 3
 [project issue tracker]: https://github.com/jefferyto/gedit-ex-mortis/issues
 [zip]: https://github.com/jefferyto/gedit-ex-mortis/archive/master.zip
 [tar.gz]: https://github.com/jefferyto/gedit-ex-mortis/archive/master.tar.gz
+[dashboard-conflict]: https://github.com/jefferyto/gedit-ex-mortis/issues/2
 [python-gtk-utils]: https://github.com/jefferyto/python-gtk-utils
 [Restore Tabs]: https://github.com/Quixotix/gedit-restore-tabs
