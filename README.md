@@ -16,11 +16,15 @@ This plugin requires gedit 3.12 or newer.
 1.  Download the source code (as [zip][] or [tar.gz][]) and extract.
 2.  Copy the `ex-mortis` folder and the `ex-mortis.plugin` file into
     `~/.local/share/gedit/plugins` (create if it does not exist).
-3.  Restart gedit, then enable the plugin in the **Plugins** tab in
+3.  Restart gedit, then activate the plugin in the **Plugins** tab in
     gedit's **Preferences** window.
 4.  Restart gedit again, preferably using **Quit** in the Application
     menu or the File menu. This is necessary because the plugin cannot
     reopen any windows that were open when the plugin was activated.
+
+If you have previously activated the Dashboard plugin (part of the
+gedit-plugins package), you may want to deactivate it as it may conflict
+with this plugin (#2).
 
 ## Usage
 
