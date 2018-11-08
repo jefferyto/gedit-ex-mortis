@@ -53,7 +53,7 @@ name = os.getenv('GEDIT_EX_MORTIS_DEBUG_LEVEL', '').lower()
 if name in NAMES_TO_LEVELS:
 	output_level = NAMES_TO_LEVELS[name]
 
-# set by query(), used by prefix()
+# set by query(), used by name()
 last_queried_level = None
 
 
