@@ -4,6 +4,7 @@ Module=ex-mortis
 IAge=3
 Name=Ex-Mortis
 Description=Reopen closed windows and optionally restore windows between sessions
+Description[ru]=Переоткрывает закрытые окна и восстанавливает окна между сессиями
 Icon=window-new
 Authors=Jeffery To <jeffery.to@gmail.com>
 Copyright=Copyright © 2017-2018 Jeffery To
