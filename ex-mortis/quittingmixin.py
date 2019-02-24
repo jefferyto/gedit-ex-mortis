@@ -32,6 +32,7 @@ class QuittingMixin(object):
 
 		self._window_ids = {} if is_saving_window_states else None
 		self._quitting = None
+		self._restore_states = None
 		self._restore_windows = None
 
 	def do_deactivate_quitting(self):
@@ -42,6 +43,7 @@ class QuittingMixin(object):
 
 		self._window_ids = None
 		self._quitting = None
+		self._restore_states = None
 		self._restore_windows = None
 
 
@@ -304,12 +306,11 @@ class QuittingMixin(object):
 
 	# restoring
 
-	def restore_windows(self, window_manager, settings, do_restore):
+	def handle_restore_data(self, window_manager, settings, do_restore):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("do_restore=%s", do_restore))
 
 		states = []
-		windows = []
 
 		for window_id in list(settings.restore_windows):
 			if do_restore:
@@ -339,48 +340,44 @@ class QuittingMixin(object):
 
 			settings.remove_window(window_id)
 
-		if do_restore and states:
-			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("restoring %s windows", len(states)))
-
-			screen_width = window_manager.get_screen_width()
-			screen_height = window_manager.get_screen_height()
-
-			for state in states:
-				# when gedit goes to open the first blank tab,
-				# it tries to find an active window first
-				# but it tests for windows in the current screen/workspace/viewport
-				# which is in part based on the size of the window
-				# so we need to shrink our windows here to fit the screen,
-				# otherwise gedit will think they are in a different viewport
-				# (if the window is too large for the screen,
-				# the window manager will probably resize the window to fit anyway)
-				if state.width > screen_width:
-					state.side_panel_size = round((state.side_panel_size / state.width) * screen_width)
-					state.width = screen_width
-				if state.height > screen_height:
-					state.bottom_panel_size = round((state.bottom_panel_size / state.height) * screen_height)
-					state.height = screen_height
-
-				windows.append(window_manager.open_new_window_with_window_state(state))
-
-			self._restore_windows = {}
-
-			# the window manager can choose to make another window active
-			# rather than the active window at the end of this process
-			# so listen for new tab on all windows
-			for window, state in zip(windows, states):
-				self.setup_restore_window(window, state)
-
-		elif not do_restore:
+		if not do_restore:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("not restoring windows"))
 
-		else:
+			return
+
+		if not states:
 			if log.query(log.MESSAGE):
 				Gedit.debug_plugin_message(log.format("no windows to restore"))
 
-	def setup_restore_window(self, window, state=None):
+			return
+
+		if log.query(log.MESSAGE):
+			Gedit.debug_plugin_message(log.format("will restore %s windows", len(states)))
+
+		screen_width = window_manager.get_screen_width()
+		screen_height = window_manager.get_screen_height()
+
+		for state in states:
+			# when gedit goes to open the first blank tab,
+			# it tries to find an active window first
+			# but it tests for windows in the current screen/workspace/viewport
+			# which is in part based on the size of the window
+			# so we need to shrink our windows here to fit the screen,
+			# otherwise gedit will think they are in a different viewport
+			# (if the window is too large for the screen,
+			# the window manager will probably resize the window to fit anyway)
+			if state.width > screen_width:
+				state.side_panel_size = round((state.side_panel_size / state.width) * screen_width)
+				state.width = screen_width
+			if state.height > screen_height:
+				state.bottom_panel_size = round((state.bottom_panel_size / state.height) * screen_height)
+				state.height = screen_height
+
+		self._restore_states = states
+		self._restore_windows = {}
+
+	def setup_restore_window(self, window_manager, window):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
@@ -400,7 +397,7 @@ class QuittingMixin(object):
 			Gedit.debug_plugin_message(log.format("setting up restore window"))
 
 		self._restore_windows[window] = window.connect(
-			'tab-added', self.on_restore_window_tab_added, state
+			'tab-added', self.on_restore_window_tab_added, window_manager
 		)
 
 	def teardown_restore_windows(self):
@@ -441,32 +438,51 @@ class QuittingMixin(object):
 
 		del self._restore_windows[window]
 
-	def on_restore_window_tab_added(self, window, tab, state):
+	def on_restore_window_tab_added(self, window, tab, window_manager):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
-		if (tab.get_document().is_untouched()
-				and tab.get_state() == Gedit.TabState.STATE_NORMAL):
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("closing untouched tab"))
-
-			def close_tab():
-				window.close_tab(tab)
-
-				if not window.get_active_tab():
-					window.close()
-
-				elif state:
-					state.apply_active_uri(window)
-					state.apply_notebook_widths(window)
-
-				return False
-
-			GLib.idle_add(close_tab)
-
-		else:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("new tab is not untouched"))
-
 		self.teardown_restore_windows()
 
+		def do_restore_windows():
+			self.restore_windows(window_manager, window, tab)
+
+			return False
+
+		GLib.idle_add(do_restore_windows)
+
+	def restore_windows(self, window_manager, window, tab):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
+
+		active_tab = window.get_active_tab()
+		num_tabs = len(active_tab.get_parent().get_children())
+		is_single_empty_tab = (
+			num_tabs == 1
+			and tab == active_tab
+			and tab.get_document().is_untouched()
+			and tab.get_state() == Gedit.TabState.STATE_NORMAL
+		)
+
+		# if there is only one empty tab, let gedit reuse it when opening files
+		# otherwise, open a new tab to be (re)used
+		# this protects the new tab that was added if gedit was run with
+		# --new-document and one or more files to open
+
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("is_single_empty_tab=%s", is_single_empty_tab))
+
+		if not is_single_empty_tab:
+			window.create_tab(True)
+
+		state = self._restore_states.pop()
+		window_manager.import_window_state(window, state)
+
+		for state in self._restore_states:
+			window_manager.open_new_window_with_window_state(state)
+
+		self._restore_states = None
+
+		if not is_single_empty_tab:
+			window.set_active_tab(active_tab)
+			window.present()
