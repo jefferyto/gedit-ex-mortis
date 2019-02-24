@@ -102,6 +102,8 @@ class ExMortisAppActivatable(
 			'app.reopen-closed-window', ['<Primary><Shift>N']
 		)
 		menu_ext = self.extend_menu('app-commands-section')
+		if not menu_ext:
+			menu_ext = self.extend_menu('file-section')
 		menu_item = Gio.MenuItem.new(
 			_("Reopen Closed _Window"), 'app.reopen-closed-window'
 		)
