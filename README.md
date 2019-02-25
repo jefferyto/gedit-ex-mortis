@@ -52,7 +52,10 @@ i.e. only unsaved or blank documents, will not be reopenable.
     open in the previous session will be reopened when gedit is started
     again. (Default: Disabled)
 
-## Development
+## Contributing
+
+Please base changes on, and open pull requests against, the `develop`
+branch.
 
 The code in `ex-mortis/utils` comes from [python-gtk-utils][]; changes
 should ideally be contributed to that project, then pulled back into
