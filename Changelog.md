@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+* Restore windows on startup, and save windows for restoring, only for
+  the primary instance, i.e. when gedit is not in standalone mode
 * When restoring windows on startup, reuse the new window/tab (#4)
 * Fixed adding "Reopen Closed Window" menu item on platforms with no app
   menu or menu bar (#5)

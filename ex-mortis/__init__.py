@@ -61,8 +61,9 @@ class ExMortisAppActivatable(
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = self.app
+		is_primary = not (app.get_flags() & Gio.ApplicationFlags.NON_UNIQUE)
 		window_manager = ExMortisWindowManager()
-		settings = ExMortisSettings()
+		settings = ExMortisSettings(is_primary)
 
 		# app
 		connect_handlers(
@@ -440,12 +441,17 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
+		app = Gedit.App.get_default()
+		is_primary = not (app.get_flags() & Gio.ApplicationFlags.NON_UNIQUE)
 		settings = ExMortisSettings()
 
 		if settings.can_save:
 			widget = Gtk.CheckButton.new_with_label(
 				_("Restore windows between sessions")
 			)
+
+			if not is_primary:
+				widget.set_sensitive(False)
 
 			create_bindings(
 				self, settings, widget,
