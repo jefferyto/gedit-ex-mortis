@@ -3,7 +3,7 @@
 # __init__.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2019 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -61,8 +61,9 @@ class ExMortisAppActivatable(
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = self.app
+		is_primary = not (app.get_flags() & Gio.ApplicationFlags.NON_UNIQUE)
 		window_manager = ExMortisWindowManager()
-		settings = ExMortisSettings()
+		settings = ExMortisSettings(is_primary)
 
 		# app
 		connect_handlers(
@@ -102,6 +103,8 @@ class ExMortisAppActivatable(
 			'app.reopen-closed-window', ['<Primary><Shift>N']
 		)
 		menu_ext = self.extend_menu('app-commands-section')
+		if not menu_ext:
+			menu_ext = self.extend_menu('file-section')
 		menu_item = Gio.MenuItem.new(
 			_("Reopen Closed _Window"), 'app.reopen-closed-window'
 		)
@@ -133,7 +136,7 @@ class ExMortisAppActivatable(
 		# windows
 		windows = app.get_main_windows()
 
-		self.restore_windows(
+		self.handle_restore_data(
 			window_manager, settings,
 			settings.restore_between_sessions and not windows
 		)
@@ -220,7 +223,7 @@ class ExMortisAppActivatable(
 
 		window_manager.track_window(window)
 
-		self.setup_restore_window(window)
+		self.setup_restore_window(window_manager, window)
 
 		if self.is_saving_window_states():
 			self.bind_window_settings(window_manager, settings, window)
@@ -438,12 +441,17 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format(""))
 
+		app = Gedit.App.get_default()
+		is_primary = not (app.get_flags() & Gio.ApplicationFlags.NON_UNIQUE)
 		settings = ExMortisSettings()
 
 		if settings.can_save:
 			widget = Gtk.CheckButton.new_with_label(
 				_("Restore windows between sessions")
 			)
+
+			if not is_primary:
+				widget.set_sensitive(False)
 
 			create_bindings(
 				self, settings, widget,

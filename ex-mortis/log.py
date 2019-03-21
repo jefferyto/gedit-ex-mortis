@@ -3,7 +3,7 @@
 # log.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2019 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,7 @@ name = os.getenv('GEDIT_EX_MORTIS_DEBUG_LEVEL', '').lower()
 if name in NAMES_TO_LEVELS:
 	output_level = NAMES_TO_LEVELS[name]
 
-# set by query(), used by prefix()
+# set by query(), used by name()
 last_queried_level = None
 
 

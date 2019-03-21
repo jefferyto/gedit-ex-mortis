@@ -3,7 +3,7 @@
 # settings.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017-2018 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2019 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
@@ -36,11 +36,11 @@ class ExMortisSettings(GObject.Object):
 	restore_windows = GObject.Property(type=GObject.GType.from_name('GStrv'), default=[])
 
 
-	def __init__(self):
+	def __init__(self, is_enabled=True):
 		GObject.Object.__init__(self)
 
 		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format(""))
+			Gedit.debug_plugin_message(log.format("is_enabled=%s", is_enabled))
 
 		try:
 			schema_source = Gio.SettingsSchemaSource.new_from_directory(
@@ -55,11 +55,14 @@ class ExMortisSettings(GObject.Object):
 
 			schema_source = None
 
-		settings = get_settings(
-			schema_source,
-			'com.thingsthemselves.gedit.plugins.ex-mortis',
-			'/com/thingsthemselves/gedit/plugins/ex-mortis/'
-		)
+		if is_enabled:
+			settings = get_settings(
+				schema_source,
+				'com.thingsthemselves.gedit.plugins.ex-mortis',
+				'/com/thingsthemselves/gedit/plugins/ex-mortis/'
+			)
+		else:
+			settings = None
 
 		if settings:
 			try:

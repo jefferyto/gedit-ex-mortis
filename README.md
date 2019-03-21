@@ -2,7 +2,7 @@
 
 Reopen closed windows and optionally restore windows between sessions  
 <https://github.com/jefferyto/gedit-ex-mortis>  
-0.1.2
+0.2.0
 
 All bug reports, feature requests and miscellaneous comments are welcome
 at the [project issue tracker][].
@@ -52,7 +52,10 @@ i.e. only unsaved or blank documents, will not be reopenable.
     open in the previous session will be reopened when gedit is started
     again. (Default: Disabled)
 
-## Development
+## Contributing
+
+Please base changes on, and open pull requests against, the `develop`
+branch.
 
 The code in `ex-mortis/utils` comes from [python-gtk-utils][]; changes
 should ideally be contributed to that project, then pulled back into
@@ -66,7 +69,7 @@ Inspired by:
 
 ## License
 
-Copyright &copy; 2017-2018 Jeffery To <jeffery.to@gmail.com>
+Copyright &copy; 2017-2019 Jeffery To <jeffery.to@gmail.com>
 
 Available under GNU General Public License version 3
 
