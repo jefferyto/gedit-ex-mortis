@@ -2,7 +2,7 @@
 
 Reopen closed windows and optionally restore windows between sessions  
 <https://github.com/jefferyto/gedit-ex-mortis>  
-0.1.2
+0.2.0
 
 All bug reports, feature requests and miscellaneous comments are welcome
 at the [project issue tracker][].

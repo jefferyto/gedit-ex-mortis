@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2019-03-22)
 * Restore windows on startup, and save windows for restoring, only for
   the primary instance, i.e. when gedit is not in standalone mode
 * When restoring windows on startup, reuse the new window/tab (#4)
