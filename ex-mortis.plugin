@@ -7,6 +7,6 @@ Description=Reopen closed windows and optionally restore windows between session
 Description[ru]=Переоткрывает закрытые окна и восстанавливает окна между сессиями
 Icon=window-new
 Authors=Jeffery To <jeffery.to@gmail.com>
-Copyright=Copyright © 2017-2018 Jeffery To
+Copyright=Copyright © 2017-2019 Jeffery To
 Website=https://github.com/jefferyto/gedit-ex-mortis
 Version=0.1.2
