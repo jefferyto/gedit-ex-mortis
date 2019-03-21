@@ -1,24 +1,25 @@
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: gedit-ex-mortis 0.1.2\n"
-"PO-Revision-Date: 2019-01-21 09:00+0300\n"
+"Project-Id-Version: gedit-ex-mortis 0.2.0\n"
+"POT-Creation-Date: 2019-03-22 04:12+0800\n"
+"PO-Revision-Date: 2019-03-22 04:15+0800\n"
 "Last-Translator: Habetdin\n"
 "Language-Team: Russian\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ru\n"
+"X-Generator: Poedit 2.1.1\n"
 
-#: __init__.py:106
+#: __init__.py:109
 msgid "Reopen Closed _Window"
 msgstr "Пе_реоткрыть закрытое окно"
 
-#: __init__.py:445 existingmixin.py:87
+#: __init__.py:450 existingmixin.py:87
 msgid "Restore windows between sessions"
 msgstr "Восстанавливать окна между сессиями"
 
-#: __init__.py:458
+#: __init__.py:466
 msgid "Could not load settings schema"
 msgstr "Ошибка при загрузке схемы настроек"
 
@@ -31,8 +32,12 @@ msgid "_Ignore"
 msgstr "И_гнорировать"
 
 #: existingmixin.py:77
-msgid "This window cannot be reopened if closed. Restart gedit to fully enable Ex-Mortis."
-msgstr "Это окно не может быть восстановлено после закрытия. Перезапустите gedit для полноценной активации Ex-Mortis."
+msgid ""
+"This window cannot be reopened if closed. Restart gedit to fully enable Ex-"
+"Mortis."
+msgstr ""
+"Это окно не может быть восстановлено после закрытия. Перезапустите gedit для "
+"полноценной активации Ex-Mortis."
 
 #: existingmixin.py:88
 msgid "Application menu"
@@ -44,5 +49,10 @@ msgstr "меню Файл"
 
 #: existingmixin.py:89
 #, python-brace-format
-msgid "To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the {menu_name} or in this message."
-msgstr "Для восстановления данного окна включите в настройках Ex-Mortis \"{pref_name}\" и выйдите из gedit, выбрав Завершить в {menu_name} или в этом сообщении."
+msgid ""
+"To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, "
+"and quit gedit by selecting Quit in the {menu_name} or in this message."
+msgstr ""
+"Для восстановления данного окна включите в настройках Ex-Mortis "
+"\"{pref_name}\" и выйдите из gedit, выбрав Завершить в {menu_name} или в "
+"этом сообщении."
