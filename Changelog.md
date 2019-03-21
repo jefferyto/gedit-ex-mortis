@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.2.1-dev (unreleased)
+
 ## 0.2.0 (2019-03-22)
 * Restore windows on startup, and save windows for restoring, only for
   the primary instance, i.e. when gedit is not in standalone mode
