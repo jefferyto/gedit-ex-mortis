@@ -15,7 +15,7 @@ This plugin requires gedit 3.12 or newer.
 
 ## Installation
 
-1.  Download the source code (as [zip][] or [tar.gz][]) and extract.
+1.  Download the [latest release][] and extract.
 2.  Copy the `ex-mortis` folder and the `ex-mortis.plugin` file into
     `~/.local/share/gedit/plugins` (create if it does not exist).
 3.  Restart gedit, then activate the plugin in the **Plugins** tab in
@@ -28,8 +28,7 @@ If you have previously activated the Dashboard or Zeitgeist plugins
 (part of the gedit-plugins package), you may want to deactivate them as
 they may [conflict][] with this plugin.
 
-[zip]: https://github.com/jefferyto/gedit-ex-mortis/archive/master.zip
-[tar.gz]: https://github.com/jefferyto/gedit-ex-mortis/archive/master.tar.gz
+[latest release]: https://github.com/jefferyto/gedit-ex-mortis/releases/latest
 [conflict]: https://github.com/jefferyto/gedit-ex-mortis/issues/2
 
 ## Usage
@@ -64,9 +63,6 @@ i.e. only unsaved or blank documents, will not be reopenable.
     again. (Default: Disabled)
 
 ## Contributing
-
-Please base changes on, and open pull requests against, the `develop`
-branch.
 
 The code in `ex-mortis/utils` comes from [python-gtk-utils][]; changes
 should ideally be contributed to that project, then pulled back into
