@@ -2,7 +2,7 @@
 
 Reopen closed windows and optionally restore windows between sessions  
 <https://github.com/jefferyto/gedit-ex-mortis>  
-0.2.0
+0.2.1-dev
 
 All bug reports, feature requests and miscellaneous comments are welcome
 at the [project issue tracker][].
@@ -41,6 +41,11 @@ they may [conflict][] with this plugin.
 
 *   If enabled in preferences, this plugin will also restore windows
     between gedit sessions.
+
+    Window information is tracked in real-time, i.e. when files are
+    opened and closed, so that if gedit crashes or is closed
+    unexpectedly, when gedit is restarted all windows will be restored
+    to the previous state.
 
 Note that only saved files will be reopened. Unsaved files or unsaved
 changes are not cached in any way. Closed windows with no saved files,
