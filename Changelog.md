@@ -21,7 +21,7 @@
 * Initial release
 
 
-[Unreleased]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...develop
+[Unreleased]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...main
 [0.2.0]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.0...0.1.1
