@@ -1,6 +1,7 @@
 # Changelog
 
 ## [0.2.1-dev][Unreleased] - Unreleased
+* Fixed AttributeError when loaded in gedit 44
 
 ## [0.2.0] - 2019-03-22
 * Restore windows on startup, and save windows for restoring, only for

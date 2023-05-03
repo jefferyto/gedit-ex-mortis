@@ -457,10 +457,17 @@ class QuittingMixin(object):
 
 		active_tab = window.get_active_tab()
 		num_tabs = len(active_tab.get_parent().get_children())
+
+		document = tab.get_document()
+		try:
+			is_untouched = document.is_untouched() # removed in gedit 44
+		except AttributeError:
+			is_untouched = document_is_untouched(document)
+
 		is_single_empty_tab = (
 			num_tabs == 1
 			and tab == active_tab
-			and tab.get_document().is_untouched()
+			and is_untouched
 			and tab.get_state() == Gedit.TabState.STATE_NORMAL
 		)
 
@@ -486,3 +493,13 @@ class QuittingMixin(object):
 		if not is_single_empty_tab:
 			window.set_active_tab(active_tab)
 			window.present()
+
+# based on tepl_buffer_is_untouched() in tepl-buffer.c
+def document_is_untouched(document):
+	return (
+		document.get_char_count()  == 0
+		and not document.get_modified()
+		and not document.can_undo()
+		and not document.can_redo()
+		and document.get_file().get_location() is None
+	)
