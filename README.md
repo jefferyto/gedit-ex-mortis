@@ -80,6 +80,6 @@ Inspired by:
 
 ## License
 
-Copyright &copy; 2017-2019 Jeffery To <jeffery.to@gmail.com>
+Copyright &copy; 2017-2019, 2023 Jeffery To <jeffery.to@gmail.com>
 
 Available under GNU General Public License version 3
