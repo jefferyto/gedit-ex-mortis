@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.1-dev][Unreleased] - Unreleased
+## [0.2.1] - 2023-05-03
 * Fixed AttributeError when loaded in gedit 44
 
 ## [0.2.0] - 2019-03-22
@@ -22,7 +22,7 @@
 * Initial release
 
 
-[Unreleased]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...main
+[0.2.1]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.2...0.2.0
 [0.1.2]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.0...0.1.1
