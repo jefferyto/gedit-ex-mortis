@@ -4,8 +4,11 @@ Reopen closed windows and optionally restore windows between sessions
 <https://github.com/jefferyto/gedit-ex-mortis>  
 0.2.3-dev
 
-All bug reports, feature requests and miscellaneous comments are welcome
-at the [project issue tracker][].
+All bug reports, feature requests, and miscellaneous comments are
+welcome at the [project issue tracker].
+
+Be sure to watch the project on GitHub to receive notifications for new
+releases.
 
 [project issue tracker]: https://github.com/jefferyto/gedit-ex-mortis/issues
 
@@ -15,7 +18,7 @@ This plugin requires gedit 3.12 or newer.
 
 ## Installation
 
-1.  Download the [latest release][] and extract.
+1.  Download the [latest release] and extract.
 2.  Copy the `ex-mortis` folder and the `ex-mortis.plugin` file into
     `~/.local/share/gedit/plugins` (create if it does not exist).
 3.  Restart gedit, then activate the plugin in the **Plugins** tab in
@@ -26,7 +29,7 @@ This plugin requires gedit 3.12 or newer.
 
 If you have previously activated the Dashboard or Zeitgeist plugins
 (part of the gedit-plugins package), you may want to deactivate them as
-they may [conflict][] with this plugin.
+they may [conflict] with this plugin.
 
 [latest release]: https://github.com/jefferyto/gedit-ex-mortis/releases/latest
 [conflict]: https://github.com/jefferyto/gedit-ex-mortis/issues/2
@@ -64,7 +67,7 @@ i.e. only unsaved or blank documents, will not be reopenable.
 
 ## Contributing
 
-The code in `ex-mortis/utils` comes from [python-gtk-utils][]; changes
+The code in `ex-mortis/utils` comes from [python-gtk-utils]; changes
 should ideally be contributed to that project, then pulled back into
 this one with `git subtree pull`.
 
@@ -74,7 +77,7 @@ this one with `git subtree pull`.
 
 Inspired by:
 
-*   [Restore Tabs][] by Quixotix
+*   [Restore Tabs] by Quixotix
 
 [Restore Tabs]: https://github.com/Quixotix/gedit-restore-tabs
 
