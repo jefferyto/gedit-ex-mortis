@@ -94,6 +94,7 @@ class ExMortisWindowManager(GObject.Object):
 		state.save_window(window)
 
 		multi_notebook = window.get_template_child(Gedit.Window, 'multi_notebook')
+		whole_side_panel = window.get_template_child(Gedit.Window, 'side_panel')
 		side_panel = window.get_side_panel()
 		bottom_panel = window.get_bottom_panel()
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
@@ -107,7 +108,7 @@ class ExMortisWindowManager(GObject.Object):
 				'tabs-reordered',
 				'active-tab-changed',
 				'configure-event',
-				'window-state-event',
+				'window-state-event'
 			],
 			'window',
 			state
@@ -121,15 +122,33 @@ class ExMortisWindowManager(GObject.Object):
 			'multi_notebook',
 			window, state
 		)
-		connect_handlers(
-			self, side_panel,
-			[
-				'notify::visible-child-name',
-				'notify::visible'
-			],
-			'side_panel',
-			window, state
-		)
+		if side_panel is not whole_side_panel:
+			connect_handlers(
+				self, whole_side_panel,
+				[
+					'notify::visible'
+				],
+				'side_panel',
+				window, state
+			)
+			connect_handlers(
+				self, side_panel,
+				[
+					'changed'
+				],
+				'side_panel',
+				window, state
+			)
+		else: # gedit 45
+			connect_handlers(
+				self, side_panel,
+				[
+					'notify::visible-child-name',
+					'notify::visible'
+				],
+				'side_panel',
+				window, state
+			)
 		connect_handlers(
 			self, bottom_panel,
 			[
@@ -160,6 +179,7 @@ class ExMortisWindowManager(GObject.Object):
 			state,
 			{
 				'multi_notebook': multi_notebook,
+				'whole_side_panel': whole_side_panel,
 				'side_panel': side_panel,
 				'bottom_panel': bottom_panel,
 				'hpaned': hpaned,
@@ -201,6 +221,7 @@ class ExMortisWindowManager(GObject.Object):
 
 		disconnect_handlers(self, window)
 		disconnect_handlers(self, multi_notebook)
+		disconnect_handlers(self, widgets['whole_side_panel'])
 		disconnect_handlers(self, widgets['side_panel'])
 		disconnect_handlers(self, widgets['bottom_panel'])
 		disconnect_handlers(self, hpaned)
@@ -404,6 +425,12 @@ class ExMortisWindowManager(GObject.Object):
 		# can't untrack_paned() since the notebook is already disconnected and the paned gone
 
 		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
+
+	def on_side_panel_changed(self, side_panel, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s",window))
+
+		state.save_side_panel_page_name(window)
 
 	def on_side_panel_notify_visible_child_name(self, side_panel, pspec, window, state):
 		if log.query(log.INFO):

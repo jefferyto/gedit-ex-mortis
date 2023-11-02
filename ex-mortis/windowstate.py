@@ -666,7 +666,12 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		side_panel = window.get_side_panel()
-		page_name = side_panel.get_visible_child_name()
+
+		try:
+			page_name = side_panel.get_active_item_name()
+		except AttributeError: # gedit 45
+			page_name = side_panel.get_visible_child_name()
+
 		if not page_name:
 			page_name = ''
 
@@ -688,7 +693,10 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("applying page_name=%s", page_name))
 
 		side_panel = window.get_side_panel()
-		side_panel.set_visible_child_name(page_name)
+		try:
+			side_panel.set_active_item_name(page_name)
+		except AttributeError: # gedit 45
+			side_panel.set_visible_child_name(page_name)
 
 
 	# side panel size
@@ -721,7 +729,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		side_panel = window.get_side_panel()
+		side_panel = window.get_template_child(Gedit.Window, 'side_panel')
 		visible = side_panel.get_visible()
 
 		return self.save_property('side-panel-visible', visible)
@@ -735,7 +743,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("applying visible=%s", visible))
 
-		side_panel = window.get_side_panel()
+		side_panel = window.get_template_child(Gedit.Window, 'side_panel')
 		side_panel.set_visible(visible)
 
 
