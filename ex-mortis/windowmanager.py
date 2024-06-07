@@ -397,7 +397,12 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.emit('tabs-reordered', window)
 
-	def on_window_active_tab_changed(self, window, tab, state):
+	def on_window_active_tab_changed(self, window, tab, state=None):
+		# tab parameter removed in gedit 47
+		if not state:
+			state = tab
+			tab = window.get_active_tab()
+
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
