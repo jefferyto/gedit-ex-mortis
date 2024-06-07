@@ -105,7 +105,6 @@ class ExMortisWindowManager(GObject.Object):
 			[
 				'tab-added',
 				'tab-removed',
-				'tabs-reordered',
 				'active-tab-changed',
 				'configure-event',
 				'window-state-event'
@@ -113,6 +112,15 @@ class ExMortisWindowManager(GObject.Object):
 			'window',
 			state
 		)
+		if GObject.signal_lookup('tabs-reordered', window) > 0: # removed in gedit 47
+			connect_handlers(
+				self, window,
+				[
+					'tabs-reordered'
+				],
+				'window',
+				state
+			)
 		connect_handlers(
 			self, multi_notebook,
 			[
