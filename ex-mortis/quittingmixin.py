@@ -464,11 +464,16 @@ class QuittingMixin(object):
 		except AttributeError:
 			is_untouched = document_is_untouched(document)
 
+		try:
+			normal_state = Gedit.TabState.NORMAL
+		except AttributeError:
+			normal_state = Gedit.TabState.STATE_NORMAL # before gedit 47
+
 		is_single_empty_tab = (
 			num_tabs == 1
 			and tab == active_tab
 			and is_untouched
-			and tab.get_state() == Gedit.TabState.STATE_NORMAL
+			and tab.get_state() == normal_state
 		)
 
 		# if there is only one empty tab, let gedit reuse it when opening files
