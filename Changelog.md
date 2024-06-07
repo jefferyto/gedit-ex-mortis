@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.3-dev][Unreleased] - Unreleased
+## [0.2.3] - 2024-06-07
 * Fixed error when loaded in gedit 47 ([#11])
 
 ## [0.2.2] - 2023-11-02
@@ -28,7 +28,7 @@
 * Initial release
 
 
-[Unreleased]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.2...main
+[0.2.3]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.1.2...0.2.0
