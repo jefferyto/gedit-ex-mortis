@@ -1,6 +1,7 @@
 # Changelog
 
 ## [0.2.3-dev][Unreleased] - Unreleased
+* Fixed error when loaded in gedit 47 ([#11])
 
 ## [0.2.2] - 2023-11-02
 * Fixed AttributeError when loaded in gedit 46 ([#9])
@@ -39,3 +40,4 @@
 [#5]: https://github.com/jefferyto/gedit-ex-mortis/issues/5
 [#6]: https://github.com/jefferyto/gedit-ex-mortis/pull/6
 [#9]: https://github.com/jefferyto/gedit-ex-mortis/issues/9
+[#11]: https://github.com/jefferyto/gedit-ex-mortis/issues/11
