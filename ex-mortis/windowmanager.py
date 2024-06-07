@@ -105,7 +105,6 @@ class ExMortisWindowManager(GObject.Object):
 			[
 				'tab-added',
 				'tab-removed',
-				'tabs-reordered',
 				'active-tab-changed',
 				'configure-event',
 				'window-state-event'
@@ -113,6 +112,15 @@ class ExMortisWindowManager(GObject.Object):
 			'window',
 			state
 		)
+		if GObject.signal_lookup('tabs-reordered', window) > 0: # removed in gedit 47
+			connect_handlers(
+				self, window,
+				[
+					'tabs-reordered'
+				],
+				'window',
+				state
+			)
 		connect_handlers(
 			self, multi_notebook,
 			[
@@ -389,7 +397,12 @@ class ExMortisWindowManager(GObject.Object):
 
 		self.emit('tabs-reordered', window)
 
-	def on_window_active_tab_changed(self, window, tab, state):
+	def on_window_active_tab_changed(self, window, tab, state=None):
+		# tab parameter removed in gedit 47
+		if not state:
+			state = tab
+			tab = window.get_active_tab()
+
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
