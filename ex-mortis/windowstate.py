@@ -3,7 +3,7 @@
 # windowstate.py
 # This file is part of Ex-Mortis, a plugin for gedit
 #
-# Copyright (C) 2017-2019, 2023 Jeffery To <jeffery.to@gmail.com>
+# Copyright (C) 2017-2019, 2023-2024 Jeffery To <jeffery.to@gmail.com>
 # https://github.com/jefferyto/gedit-ex-mortis
 #
 # This program is free software: you can redistribute it and/or modify
