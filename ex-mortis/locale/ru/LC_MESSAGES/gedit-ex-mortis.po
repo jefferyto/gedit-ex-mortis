@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gedit-ex-mortis 0.2.4-dev\n"
-"POT-Creation-Date: 2024-12-24 09:59+0800\n"
-"PO-Revision-Date: 2024-12-24 10:01+0800\n"
+"POT-Creation-Date: 2024-12-24 20:35+0800\n"
+"PO-Revision-Date: 2024-12-24 20:38+0800\n"
 "Last-Translator: Habetdin\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -10,31 +10,31 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
-"X-Poedit-Basepath: ../..\n"
-"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ../..\n"
 
-#: ex-mortis/__init__.py:109
+#: ../../ex-mortis/__init__.py:109
 msgid "Reopen Closed _Window"
 msgstr "Пе_реоткрыть закрытое окно"
 
-#: ex-mortis/__init__.py:450 ex-mortis/existingmixin.py:87
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:6
+#: ../../ex-mortis/__init__.py:450 ../../ex-mortis/existingmixin.py:87
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:6
 msgid "Restore windows between sessions"
 msgstr "Восстанавливать окна между сессиями"
 
-#: ex-mortis/__init__.py:466
+#: ../../ex-mortis/__init__.py:466
 msgid "Could not load settings schema"
 msgstr "Ошибка при загрузке схемы настроек"
 
-#: ex-mortis/existingmixin.py:67
+#: ../../ex-mortis/existingmixin.py:67
 msgid "_Quit"
 msgstr "З_авершить"
 
-#: ex-mortis/existingmixin.py:68
+#: ../../ex-mortis/existingmixin.py:68
 msgid "_Ignore"
 msgstr "И_гнорировать"
 
-#: ex-mortis/existingmixin.py:77
+#: ../../ex-mortis/existingmixin.py:77
 msgid ""
 "This window cannot be reopened if closed. Restart gedit to fully enable Ex-"
 "Mortis."
@@ -42,15 +42,15 @@ msgstr ""
 "Это окно не может быть восстановлено после закрытия. Перезапустите gedit для "
 "полноценной активации Ex-Mortis."
 
-#: ex-mortis/existingmixin.py:88
+#: ../../ex-mortis/existingmixin.py:88
 msgid "Application menu"
 msgstr "меню приложения"
 
-#: ex-mortis/existingmixin.py:88
+#: ../../ex-mortis/existingmixin.py:88
 msgid "File menu"
 msgstr "меню Файл"
 
-#: ex-mortis/existingmixin.py:89
+#: ../../ex-mortis/existingmixin.py:89
 #, python-brace-format
 msgid ""
 "To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, "
@@ -60,126 +60,126 @@ msgstr ""
 "\"{pref_name}\" и выйдите из gedit, выбрав Завершить в {menu_name} или в "
 "этом сообщении."
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:7
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:7
 msgid "Whether ex-mortis should restore windows between sessions or not"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:11
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:11
 msgid "Restore URIs"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:12
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:12
 msgid "URIs (windows/tab groups/documents) to restore between sessions"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:16
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:16
 msgid "Restore windows"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:17
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:17
 msgid "List of windows to restore between sessions"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:24
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:24
 msgid "Window URIs"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:25
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:25
 msgid "URIs of open documents, grouped by notebook (tab group)"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:29
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:29
 msgid "Active URI"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:30
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:30
 msgid "URI of the currently active document"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:34
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:34
 msgid "Notebook widths"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:35
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:35
 msgid "List of notebook (tab group) widths"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:39
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:39
 msgid "Window width"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:40
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:40
 msgid "Window width or 0 if not saved"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:44
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:44
 msgid "Window height"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:45
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:45
 msgid "Window height or 0 if not saved"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:49
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:49
 msgid "Window is maximized"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:50
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:50
 msgid "Whether the window is maximized or not"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:54
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:54
 msgid "Window is fullscreen"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:55
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:55
 msgid "Whether the window is fullscreen or not"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:59
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:59
 msgid "Side panel page name"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:60
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:60
 msgid "Name of the currently visible side panel page"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:64
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:64
 msgid "Side panel size"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:65
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:65
 msgid "Width of the side panel"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:69
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:69
 msgid "Side panel visible"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:70
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:70
 msgid "Whether the side panel is visible or not"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:74
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:74
 msgid "Bottom panel page name"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:75
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:75
 msgid "Name of the currently visible bottom panel page"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:79
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:79
 msgid "Bottom panel size"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:80
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:80
 msgid "Height of the bottom panel"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:84
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:84
 msgid "Bottom panel visible"
 msgstr ""
 
-#: ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:85
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:85
 msgid "Whether the bottom panel is visible or not"
 msgstr ""
