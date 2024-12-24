@@ -1,3 +1,4 @@
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: gedit-ex-mortis 0.2.4-dev\n"
