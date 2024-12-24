@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gedit-ex-mortis 0.2.4-dev\n"
-"POT-Creation-Date: 2024-12-24 20:35+0800\n"
+"POT-Creation-Date: 2024-12-25 04:58+0800\n"
 "PO-Revision-Date: 2017-10-13 22:50+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -35,7 +35,9 @@ msgid "_Ignore"
 msgstr ""
 
 #: ../../ex-mortis/existingmixin.py:77
-msgid "This window cannot be reopened if closed. Restart gedit to fully enable Ex-Mortis."
+msgid ""
+"This window cannot be reopened if closed. Restart gedit to fully enable Ex-"
+"Mortis."
 msgstr ""
 
 #: ../../ex-mortis/existingmixin.py:88
@@ -48,7 +50,9 @@ msgstr ""
 
 #: ../../ex-mortis/existingmixin.py:89
 #, python-brace-format
-msgid "To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, and quit gedit by selecting Quit in the {menu_name} or in this message."
+msgid ""
+"To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, "
+"and quit gedit by selecting Quit in the {menu_name} or in this message."
 msgstr ""
 
 #: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:7
