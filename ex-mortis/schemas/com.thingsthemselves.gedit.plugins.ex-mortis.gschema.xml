@@ -4,12 +4,12 @@
 		<key type="b" name="restore-between-sessions">
 			<default>false</default>
 			<summary>Restore windows between sessions</summary>
-			<description>Whether ex-mortis should restore windows between sessions or not.</description>
+			<description>Whether ex-mortis should restore windows between sessions or not</description>
 		</key>
 		<key type="aaas" name="restore-uris">
 			<default>[]</default>
 			<summary>Restore URIs</summary>
-			<description>URIs (windows / tab groups / documents) to restore between sessions.</description>
+			<description>URIs (windows/tab groups/documents) to restore between sessions</description>
 		</key>
 		<key type="as" name="restore-windows">
 			<default>[]</default>
@@ -22,12 +22,12 @@
 		<key type="aas" name="uris">
 			<default>[]</default>
 			<summary>Window URIs</summary>
-			<description>URIs of open documents, grouped by notebook (tab group).</description>
+			<description>URIs of open documents, grouped by notebook (tab group)</description>
 		</key>
 		<key type="s" name="active-uri">
 			<default>''</default>
 			<summary>Active URI</summary>
-			<description>URI of the currently active document.</description>
+			<description>URI of the currently active document</description>
 		</key>
 		<key type="ai" name="notebook-widths">
 			<default>[]</default>
@@ -37,52 +37,52 @@
 		<key type="i" name="width">
 			<default>0</default>
 			<summary>Window width</summary>
-			<description>Window width or 0 if not saved.</description>
+			<description>Window width or 0 if not saved</description>
 		</key>
 		<key type="i" name="height">
 			<default>0</default>
 			<summary>Window height</summary>
-			<description>Window height or 0 if not saved.</description>
+			<description>Window height or 0 if not saved</description>
 		</key>
 		<key type="b" name="maximized">
 			<default>false</default>
 			<summary>Window is maximized</summary>
-			<description>Whether the window is maximized or not.</description>
+			<description>Whether the window is maximized or not</description>
 		</key>
 		<key type="b" name="fullscreen">
 			<default>false</default>
 			<summary>Window is fullscreen</summary>
-			<description>Whether the window is fullscreen or not.</description>
+			<description>Whether the window is fullscreen or not</description>
 		</key>
 		<key type="s" name="side-panel-page-name">
 			<default>''</default>
 			<summary>Side panel page name</summary>
-			<description>Name of the currently visible side panel page.</description>
+			<description>Name of the currently visible side panel page</description>
 		</key>
 		<key type="i" name="side-panel-size">
 			<default>0</default>
 			<summary>Side panel size</summary>
-			<description>Width of the side panel.</description>
+			<description>Width of the side panel</description>
 		</key>
 		<key type="b" name="side-panel-visible">
 			<default>false</default>
 			<summary>Side panel visible</summary>
-			<description>Whether the side panel is visible or not.</description>
+			<description>Whether the side panel is visible or not</description>
 		</key>
 		<key type="s" name="bottom-panel-page-name">
 			<default>''</default>
 			<summary>Bottom panel page name</summary>
-			<description>Name of the currently visible bottom panel page.</description>
+			<description>Name of the currently visible bottom panel page</description>
 		</key>
 		<key type="i" name="bottom-panel-size">
 			<default>0</default>
 			<summary>Bottom panel size</summary>
-			<description>Height of the bottom panel.</description>
+			<description>Height of the bottom panel</description>
 		</key>
 		<key type="b" name="bottom-panel-visible">
 			<default>false</default>
 			<summary>Bottom panel visible</summary>
-			<description>Whether the bottom panel is visible or not.</description>
+			<description>Whether the bottom panel is visible or not</description>
 		</key>
 	</schema>
 </schemalist>
