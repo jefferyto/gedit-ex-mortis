@@ -14,7 +14,7 @@ releases.
 
 ## Requirements
 
-This plugin requires gedit 3.12 or newer.
+This plugin requires gedit 3.12 or later.
 
 ## Installation
 
