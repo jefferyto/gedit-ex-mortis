@@ -315,7 +315,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", tab))
 
-		if tab == self._active_tab:
+		if tab is self._active_tab:
 			self._active_tab = None
 
 		if tab in self._tab_map:
@@ -340,7 +340,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s, bulk_update=%s", window, tab, bulk_update))
 
-		if not bulk_update and tab == self._active_tab:
+		if not bulk_update and tab is self._active_tab:
 			self.save_active_uri(window)
 
 		if tab not in self._tab_map:
@@ -497,7 +497,7 @@ class ExMortisWindowState(GObject.Object):
 
 				continue
 
-			if parent.get_child2() == notebook:
+			if parent.get_child2() is notebook:
 				if log.query(log.DEBUG):
 					Gedit.debug_plugin_message(log.format("notebook %s is not the left child of parent %s", notebook, parent))
 

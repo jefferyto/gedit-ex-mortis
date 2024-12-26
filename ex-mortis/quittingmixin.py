@@ -477,7 +477,7 @@ class QuittingMixin(object):
 
 		is_single_empty_tab = (
 			num_tabs == 1
-			and tab == active_tab
+			and tab is active_tab
 			and is_untouched
 			and tab.get_state() == normal_state
 		)
@@ -508,7 +508,7 @@ class QuittingMixin(object):
 # based on tepl_buffer_is_untouched() in tepl-buffer.c
 def document_is_untouched(document):
 	return (
-		document.get_char_count()  == 0
+		document.get_char_count() == 0
 		and not document.get_modified()
 		and not document.can_undo()
 		and not document.can_redo()
