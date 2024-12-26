@@ -21,10 +21,8 @@
 
 import os.path
 from gi.repository import GObject, Gio, Gedit
+from .plugin import data_dir as plugin_data_dir
 from . import log
-
-BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-SCHEMAS_PATH = os.path.join(BASE_PATH, 'schemas')
 
 
 class ExMortisSettings(GObject.Object):
@@ -42,16 +40,18 @@ class ExMortisSettings(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("is_enabled=%s", is_enabled))
 
+		schemas_path = os.path.join(plugin_data_dir, 'schemas')
+
 		try:
 			schema_source = Gio.SettingsSchemaSource.new_from_directory(
-				SCHEMAS_PATH,
+				schemas_path,
 				Gio.SettingsSchemaSource.get_default(),
 				False
 			)
 
 		except:
 			if log.query(log.CRITICAL):
-				Gedit.debug_plugin_message(log.format("could not load settings schema source from %s", SCHEMAS_PATH))
+				Gedit.debug_plugin_message(log.format("could not load settings schema source from %s", schemas_path))
 
 			schema_source = None
 

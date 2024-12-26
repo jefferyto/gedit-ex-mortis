@@ -23,25 +23,15 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gedit', '3.0')
 
-import os.path
 from gi.repository import GObject, Gtk, Gio, Gedit, PeasGtk
 from .closingmixin import ClosingMixin
 from .existingmixin import ExistingMixin
 from .quittingmixin import QuittingMixin
 from .settings import ExMortisSettings
 from .windowmanager import ExMortisWindowManager
+from .plugin import _
 from .utils import connect_handlers, disconnect_handlers, create_bindings
 from . import log
-
-BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
-
-try:
-	import gettext
-	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
-	_ = lambda s: gettext.dgettext('gedit-ex-mortis', s)
-except:
-	_ = lambda s: s
 
 
 class ExMortisAppActivatable(

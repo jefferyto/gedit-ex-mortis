@@ -19,19 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
 from gi.repository import Gtk, Gedit
+from .plugin import _
 from . import log
-
-BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-LOCALE_PATH = os.path.join(BASE_PATH, 'locale')
-
-try:
-	import gettext
-	gettext.bindtextdomain('gedit-ex-mortis', LOCALE_PATH)
-	_ = lambda s: gettext.dgettext('gedit-ex-mortis', s)
-except:
-	_ = lambda s: s
 
 
 class ExistingMixin(object):
