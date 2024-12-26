@@ -22,7 +22,7 @@ This plugin requires gedit 3.12 or later.
 2.  Copy the `ex-mortis` folder and the `ex-mortis.plugin` file into
     `~/.local/share/gedit/plugins` (create if it does not exist).
 3.  Restart gedit, then activate the plugin in the **Plugins** tab in
-    gedit's **Preferences** window.
+    gedit’s **Preferences** window.
 4.  Restart gedit again, preferably using **Quit** in the Application
     menu or the File menu. This is necessary because the plugin cannot
     reopen any windows that were open when the plugin was activated.
@@ -83,6 +83,6 @@ Inspired by:
 
 ## License
 
-Copyright &copy; 2017-2019, 2023-2024 Jeffery To <jeffery.to@gmail.com>
+Copyright © 2017-2019, 2023-2024 Jeffery To <jeffery.to@gmail.com>
 
 Available under GNU General Public License version 3
