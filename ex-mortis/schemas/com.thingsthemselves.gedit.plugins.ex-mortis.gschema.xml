@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gedit-ex-mortis">
-	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis">
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis" path="/com/thingsthemselves/gedit/plugins/ex-mortis/">
 		<key type="b" name="restore-between-sessions">
 			<default>false</default>
 			<summary>Restore windows between sessions</summary>

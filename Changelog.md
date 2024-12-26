@@ -1,6 +1,8 @@
 # Changelog
 
 ## [0.2.4-dev][Unreleased] - Unreleased
+* Settings schema can be stored in a shared schemas location instead of
+  the plugin "schemas" directory
 * Fixed AttributeError when loaded in gedit 48 ([#12])
 
 ## [0.2.3] - 2024-06-07

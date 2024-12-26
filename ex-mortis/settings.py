@@ -45,26 +45,29 @@ class ExMortisSettings(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("is_enabled=%s", is_enabled))
 
-		schemas_path = os.path.join(plugin_data_dir, 'schemas')
+		schemas_directory = os.path.join(plugin_data_dir, 'schemas')
+		default_schema_source = Gio.SettingsSchemaSource.get_default()
 
 		try:
 			schema_source = Gio.SettingsSchemaSource.new_from_directory(
-				schemas_path,
-				Gio.SettingsSchemaSource.get_default(),
+				schemas_directory,
+				default_schema_source,
 				False
 			)
 
 		except:
-			if log.query(log.CRITICAL):
-				Gedit.debug_plugin_message(log.format("could not load settings schema source from %s", schemas_path))
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("could not load schema source from %s", schemas_directory))
 
 			schema_source = None
+
+		if not schema_source:
+			schema_source = default_schema_source
 
 		if is_enabled:
 			settings = get_settings(
 				schema_source,
-				'com.thingsthemselves.gedit.plugins.ex-mortis',
-				'/com/thingsthemselves/gedit/plugins/ex-mortis/'
+				'com.thingsthemselves.gedit.plugins.ex-mortis'
 			)
 		else:
 			settings = None
@@ -218,23 +221,10 @@ class ExMortisSettings(GObject.Object):
 			settings.reset(key)
 
 
-def get_settings(schema_source, schema_id, settings_path):
+def get_settings(schema_source, schema_id, settings_path=None):
 	if log.query(log.INFO):
 		Gedit.debug_plugin_message(log.format("schema_id=%s, settings_path=%s", schema_id, settings_path))
 
-	if not schema_source:
-		if log.query(log.CRITICAL):
-			Gedit.debug_plugin_message(log.format("no schema source"))
-
-		return None
-
-	schema = schema_source.lookup(schema_id, False)
-
-	if not schema:
-		if log.query(log.CRITICAL):
-			Gedit.debug_plugin_message(log.format("could not lookup '%s' in schema source", schema_id))
-
-		return None
-
-	return Gio.Settings.new_full(schema, None, settings_path)
+	schema = schema_source.lookup(schema_id, True)
+	return Gio.Settings.new_full(schema, None, settings_path) if schema else None
 
