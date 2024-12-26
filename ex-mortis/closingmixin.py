@@ -29,14 +29,14 @@ from . import log
 class ClosingMixin(object):
 
 	def do_activate_closing(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._closing = {}
 		self._closed = []
 
 	def do_deactivate_closing(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._closing = None
@@ -49,44 +49,44 @@ class ClosingMixin(object):
 		return window in self._closing
 
 	def start_closing(self, window_manager, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if self.is_closing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("already started closing window"))
+				Gedit.debug_plugin_message(log.format("Already started closing %s", window))
 
 		self._closing[window] = window_manager.export_window_state(window, True)
 
 	# can be called on non-closing windows
 	def cancel_closing(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_closing(window):
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not closing window"))
+				Gedit.debug_plugin_message(log.format("Not closing %s", window))
 
 			return
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("cancelling closing window"))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Cancelling closing %s", window))
 
 		del self._closing[window]
 
 	# can be called on non-closing windows
 	def update_closing(self, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		if not self.is_closing(window):
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not closing window"))
+				Gedit.debug_plugin_message(log.format("Not closing %s", window))
 
 			return
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("updating closing window"))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Updating closing %s", window))
 
 		state = self._closing[window]
 
@@ -94,12 +94,12 @@ class ClosingMixin(object):
 		state.forget_tab(tab)
 
 	def end_closing(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_closing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("end closing window without starting"))
+				Gedit.debug_plugin_message(log.format("End closing %s without starting", window))
 
 			return
 
@@ -107,13 +107,13 @@ class ClosingMixin(object):
 
 		if state.restore_uris:
 			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("caching window info"))
+				Gedit.debug_plugin_message(log.format("Caching window info"))
 
 			self._closed.append(state)
 
 		else:
 			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("not caching window info"))
+				Gedit.debug_plugin_message(log.format("Not caching window info"))
 
 		del self._closing[window]
 
@@ -124,12 +124,12 @@ class ClosingMixin(object):
 		return len(self._closed) > 0
 
 	def reopen_closed(self, window_manager):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		if not self.can_reopen():
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("do not have closed windows to reopen"))
+				Gedit.debug_plugin_message(log.format("Do not have closed windows to reopen"))
 
 			return
 

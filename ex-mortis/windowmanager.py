@@ -40,14 +40,14 @@ class ExMortisWindowManager(GObject.Object):
 	def __init__(self):
 		GObject.Object.__init__(self)
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._windows = {}
 		self._debounce_ids = {}
 
 	def cleanup(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		for window in list(self._windows.keys()):
@@ -61,39 +61,39 @@ class ExMortisWindowManager(GObject.Object):
 
 	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
 	def tab_added(self, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
 	def tab_removed(self, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 	@GObject.Signal(arg_types=(Gedit.Window,))
 	def tabs_reordered(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
 	def active_tab_changed(self, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 	@GObject.Signal(arg_types=(Gedit.Window, Gedit.Tab))
 	def tab_updated(self, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 
 	# tracking / untracking windows
 
 	def track_window(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if window in self._windows:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("window already being tracked"))
+				Gedit.debug_plugin_message(log.format("Already tracking %s", window))
 
 			return
 
@@ -215,12 +215,12 @@ class ExMortisWindowManager(GObject.Object):
 			self.track_tab(window, Gedit.Tab.get_from_document(document), state)
 
 	def untrack_window(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if window not in self._windows:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window"))
+				Gedit.debug_plugin_message(log.format("Unknown window %s", window))
 
 			return
 
@@ -252,7 +252,7 @@ class ExMortisWindowManager(GObject.Object):
 		del self._windows[window]
 
 	def track_paned(self, window, paned, state, multi_notebook):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, paned))
 
 		connect_handlers(
@@ -263,13 +263,13 @@ class ExMortisWindowManager(GObject.Object):
 		)
 
 	def untrack_paned(self, window, paned, state, multi_notebook):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, paned))
 
 		disconnect_handlers(self, paned)
 
 	def track_tab(self, window, tab, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		connect_handlers(
@@ -280,13 +280,13 @@ class ExMortisWindowManager(GObject.Object):
 		)
 
 	def untrack_tab(self, window, tab, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		disconnect_handlers(self, tab)
 
 	def find_paneds(self, root):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", root))
 
 		stack = root.get_children()
@@ -305,18 +305,18 @@ class ExMortisWindowManager(GObject.Object):
 	# window state
 
 	def new_window_state(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		return ExMortisWindowState()
 
 	def get_window_state(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if window not in self._windows:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window"))
+				Gedit.debug_plugin_message(log.format("Unknown window %s", window))
 
 			return None
 
@@ -325,7 +325,7 @@ class ExMortisWindowManager(GObject.Object):
 		return state
 
 	def export_window_state(self, window, forget_notebooks=False, forget_tabs=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, forget_notebooks=%s, forget_tabs=%s", window, forget_notebooks, forget_tabs))
 
 		state = self.get_window_state(window)
@@ -344,7 +344,7 @@ class ExMortisWindowManager(GObject.Object):
 		return export_state
 
 	def import_window_state(self, window, import_state, is_new_window=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, is_new_window=%s", window, is_new_window))
 
 		state = self.get_window_state(window)
@@ -355,7 +355,7 @@ class ExMortisWindowManager(GObject.Object):
 		import_state.apply_window(window, is_new_window)
 
 	def save_to_window_state(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state = self.get_window_state(window)
@@ -364,7 +364,7 @@ class ExMortisWindowManager(GObject.Object):
 			state.save_window(window)
 
 	def restore_from_window_state(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state = self.get_window_state(window)
@@ -373,7 +373,7 @@ class ExMortisWindowManager(GObject.Object):
 			state.apply_window(window)
 
 	def open_new_window_with_window_state(self, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = Gedit.App.get_default()
@@ -389,7 +389,7 @@ class ExMortisWindowManager(GObject.Object):
 	# signal handlers
 
 	def on_window_tab_added(self, window, tab, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		self.track_tab(window, tab, state)
@@ -399,7 +399,7 @@ class ExMortisWindowManager(GObject.Object):
 		self.emit('tab-added', window, tab)
 
 	def on_window_tab_removed(self, window, tab, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		self.untrack_tab(window, tab, state)
@@ -409,7 +409,7 @@ class ExMortisWindowManager(GObject.Object):
 		self.emit('tab-removed', window, tab)
 
 	def on_window_tabs_reordered(self, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.update_structure(window)
@@ -422,7 +422,7 @@ class ExMortisWindowManager(GObject.Object):
 			state = tab
 			tab = window.get_active_tab()
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		state.save_active_uri(window, tab)
@@ -437,13 +437,13 @@ class ExMortisWindowManager(GObject.Object):
 		self.debounce(window, self.debounce_save_window_size, state)
 
 	def on_window_window_state_event(self, window, event, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_window_state(window, event.new_window_state)
 
 	def on_multi_notebook_notebook_added(self, multi_notebook, notebook, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, notebook))
 
 		self.track_paned(window, notebook.get_parent(), state, multi_notebook)
@@ -451,7 +451,7 @@ class ExMortisWindowManager(GObject.Object):
 		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
 
 	def on_multi_notebook_notebook_removed(self, multi_notebook, notebook, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, notebook))
 
 		# can't untrack_paned() since the notebook is already disconnected and the paned gone
@@ -459,37 +459,37 @@ class ExMortisWindowManager(GObject.Object):
 		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
 
 	def on_side_panel_changed(self, side_panel, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s",window))
 
 		state.save_side_panel_page_name(window)
 
 	def on_side_panel_notify_visible_child_name(self, side_panel, pspec, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s",window))
 
 		state.save_side_panel_page_name(window)
 
 	def on_side_panel_notify_visible(self, side_panel, pspec, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_side_panel_visible(window)
 
 	def on_bottom_panel_changed(self, bottom_panel, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s",window))
 
 		state.save_bottom_panel_page_name(window)
 
 	def on_bottom_panel_notify_visible_child_name(self, bottom_panel, pspec, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_bottom_panel_page_name(window)
 
 	def on_bottom_panel_notify_visible(self, bottom_panel, pspec, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_bottom_panel_visible(window)
@@ -516,7 +516,7 @@ class ExMortisWindowManager(GObject.Object):
 		self.debounce(multi_notebook, self.debounce_save_notebook_widths, window, state)
 
 	def on_tab_notify_name(self, tab, pspec, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		state.save_uri(window, tab)
@@ -527,7 +527,7 @@ class ExMortisWindowManager(GObject.Object):
 	# debounced handlers
 
 	def debounce_save_window_size(self, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_size(window)
@@ -537,7 +537,7 @@ class ExMortisWindowManager(GObject.Object):
 		return False
 
 	def debounce_save_side_panel_size(self, hpaned, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_side_panel_size(window)
@@ -547,7 +547,7 @@ class ExMortisWindowManager(GObject.Object):
 		return False
 
 	def debounce_save_bottom_panel_size(self, vpaned, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_bottom_panel_size(window)
@@ -557,7 +557,7 @@ class ExMortisWindowManager(GObject.Object):
 		return False
 
 	def debounce_save_notebook_widths(self, multi_notebook, window, state):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_notebook_widths(window)
@@ -596,7 +596,7 @@ class ExMortisWindowManager(GObject.Object):
 	# screen info
 
 	def get_screen_width(self, screen=None):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", screen))
 
 		if not screen:
@@ -610,7 +610,7 @@ class ExMortisWindowManager(GObject.Object):
 		return width
 
 	def get_screen_height(self, screen=None):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", screen))
 
 		if not screen:

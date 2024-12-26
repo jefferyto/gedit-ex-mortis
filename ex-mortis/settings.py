@@ -42,7 +42,7 @@ class ExMortisSettings(GObject.Object):
 	def __init__(self, is_enabled=True):
 		GObject.Object.__init__(self)
 
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("is_enabled=%s", is_enabled))
 
 		schemas_directory = os.path.join(plugin_data_dir, 'schemas')
@@ -56,8 +56,8 @@ class ExMortisSettings(GObject.Object):
 			)
 
 		except:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("could not load schema source from %s", schemas_directory))
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.format("Could not load schema source from %s", schemas_directory))
 
 			schema_source = None
 
@@ -93,7 +93,7 @@ class ExMortisSettings(GObject.Object):
 			self.init_window_settings(window_id)
 
 	def cleanup(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		settings = self._settings
@@ -121,13 +121,13 @@ class ExMortisSettings(GObject.Object):
 
 
 	def add_window(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		window_id = self.find_unused_window_id()
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("adding window_id=%s", window_id))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Adding window id %s", window_id))
 
 		self.init_window_settings(window_id)
 
@@ -138,14 +138,17 @@ class ExMortisSettings(GObject.Object):
 		return window_id
 
 	def remove_window(self, window_id):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("window_id=%s", window_id))
 
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window id"))
+				Gedit.debug_plugin_message(log.format("Unknown window id %s", window_id))
 
 			return
+
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Removing window id %s", window_id))
 
 		self.reset_window_settings(window_id)
 
@@ -156,7 +159,7 @@ class ExMortisSettings(GObject.Object):
 		del self._window_settings[window_id]
 
 	def find_unused_window_id(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		window_id_set = set(self.restore_windows)
@@ -170,18 +173,18 @@ class ExMortisSettings(GObject.Object):
 
 			counter += 1
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("found window_id=%s", window_id))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Found unused window id %s", window_id))
 
 		return window_id
 
 	def init_window_settings(self, window_id):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window_id))
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("window_id=%s", window_id))
 
 		if window_id in self._window_settings:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("already init"))
+				Gedit.debug_plugin_message(log.format("Already init for window id %s", window_id))
 
 			return
 
@@ -194,24 +197,24 @@ class ExMortisSettings(GObject.Object):
 		self._window_settings[window_id] = settings
 
 	def get_window_settings(self, window_id):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window_id))
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("window_id=%s", window_id))
 
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window id"))
+				Gedit.debug_plugin_message(log.format("Unknown window id %s", window_id))
 
 			return None
 
 		return self._window_settings[window_id]
 
 	def reset_window_settings(self, window_id):
-		if log.query(log.INFO):
-			Gedit.debug_plugin_message(log.format("%s", window_id))
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format("window_id=%s", window_id))
 
 		if window_id not in self._window_settings:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("unknown window id"))
+				Gedit.debug_plugin_message(log.format("Unknown window id %s", window_id))
 
 			return
 
@@ -222,7 +225,7 @@ class ExMortisSettings(GObject.Object):
 
 
 def get_settings(schema_source, schema_id, settings_path=None):
-	if log.query(log.INFO):
+	if log.query(log.DEBUG):
 		Gedit.debug_plugin_message(log.format("schema_id=%s, settings_path=%s", schema_id, settings_path))
 
 	schema = schema_source.lookup(schema_id, True)

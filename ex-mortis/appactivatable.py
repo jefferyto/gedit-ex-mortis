@@ -48,7 +48,7 @@ class ExMortisAppActivatable(
 		GObject.Object.__init__(self)
 
 	def do_activate(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = self.app
@@ -146,7 +146,7 @@ class ExMortisAppActivatable(
 				self.setup_window(window, True)
 
 	def do_deactivate(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = self.app
@@ -195,7 +195,7 @@ class ExMortisAppActivatable(
 	# window setup
 
 	def setup_window(self, window, is_existing=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, is_existing=%s", window, is_existing))
 
 		window_manager = self._window_manager
@@ -228,7 +228,7 @@ class ExMortisAppActivatable(
 			self.bind_window_settings(window_manager, settings, window)
 
 	def teardown_window(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		window_manager = self._window_manager
@@ -253,7 +253,7 @@ class ExMortisAppActivatable(
 	# start closing / quitting
 
 	def on_window_delete_event(self, window, event, window_manager):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		# closing the only window also quits the app
@@ -268,7 +268,7 @@ class ExMortisAppActivatable(
 		return False
 
 	def on_quit_activate(self, action, parameter, window_manager):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		try:
@@ -285,7 +285,7 @@ class ExMortisAppActivatable(
 	# update and cancel closing / quitting
 
 	def on_window_manager_tab_removed(self, window_manager, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		if not self.is_existing(window):
@@ -294,7 +294,7 @@ class ExMortisAppActivatable(
 		self.update_quitting(window, tab)
 
 	def on_window_manager_tab_added(self, window_manager, window, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		if not self.is_existing(window):
@@ -303,7 +303,7 @@ class ExMortisAppActivatable(
 		self.cancel_quitting()
 
 	def on_window_manager_tabs_reordered(self, window_manager, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
@@ -312,17 +312,17 @@ class ExMortisAppActivatable(
 		self.cancel_quitting()
 
 	def on_app_window_added(self, app, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not isinstance(window, Gedit.Window):
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not a main window"))
+				Gedit.debug_plugin_message(log.format("Not a main window %s", window))
 
 			return
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("a main window"))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Adding main window %s", window))
 
 		self.cancel_quitting()
 
@@ -332,17 +332,17 @@ class ExMortisAppActivatable(
 	# end closing / quitting
 
 	def on_app_window_removed(self, app, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not isinstance(window, Gedit.Window):
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("not a main window"))
+				Gedit.debug_plugin_message(log.format("Not a main window %s", window))
 
 			return
 
-		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("a main window"))
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("Removing main window %s", window))
 
 		if not self.is_existing(window):
 			self.end_closing(window)
@@ -351,7 +351,7 @@ class ExMortisAppActivatable(
 		self.teardown_window(window)
 
 	def on_app_shutdown(self, app):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		settings = self._settings
@@ -362,7 +362,7 @@ class ExMortisAppActivatable(
 	# toggled restore between sessions setting
 
 	def on_settings_notify_restore_between_sessions(self, settings, pspec, window_manager):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		restore_between_sessions = settings.restore_between_sessions
@@ -372,7 +372,7 @@ class ExMortisAppActivatable(
 
 		if restore_between_sessions == self.is_saving_window_states():
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("setting has not changed"))
+				Gedit.debug_plugin_message(log.format("Setting has not changed"))
 
 			return
 
@@ -385,7 +385,7 @@ class ExMortisAppActivatable(
 	# reopen closed window
 
 	def on_reopen_activate(self, action, parameter, window_manager):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self.reopen_closed(window_manager)
@@ -395,26 +395,26 @@ class ExMortisAppActivatable(
 	# existing window info bar response
 
 	def on_existing_window_info_bar_response(self, info_bar, response_id, quit_response_id):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("response_id=%s", response_id))
 
 		info_bar.hide()
 
 		if response_id == quit_response_id:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("quit selected"))
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.format("Quit selected"))
 
 			self.app.activate_action('quit')
 
 		else:
-			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("quit not selected"))
+			if log.query(log.INFO):
+				Gedit.debug_plugin_message(log.format("Quit not selected"))
 
 
 	# helpers
 
 	def update_reopen_action_enabled(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		can_reopen = self.can_reopen()
@@ -425,7 +425,7 @@ class ExMortisAppActivatable(
 		self._reopen_action.set_enabled(can_reopen)
 
 	def really_quit(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._original_quit_action.activate()

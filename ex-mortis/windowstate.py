@@ -135,7 +135,7 @@ class ExMortisWindowState(GObject.Object):
 
 	@GObject.Signal
 	def uris_changed(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		filtered = [[uri for uri in uris if uri] for uris in self._uris]
@@ -151,7 +151,7 @@ class ExMortisWindowState(GObject.Object):
 
 	@GObject.Signal
 	def notebook_widths_changed(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		zipped = zip(self._restore_filter, self._notebook_widths)
@@ -161,7 +161,7 @@ class ExMortisWindowState(GObject.Object):
 	# saving / applying windows
 
 	def save_window(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		self.update_structure(window)
@@ -180,7 +180,7 @@ class ExMortisWindowState(GObject.Object):
 		self.save_bottom_panel_size(window)
 
 	def apply_window(self, window, is_new_window=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, is_new_window=%s", window, is_new_window))
 
 		# need to unmaximize/unfullscreen to set size
@@ -217,12 +217,12 @@ class ExMortisWindowState(GObject.Object):
 
 		if value == prev:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no change"))
+				Gedit.debug_plugin_message(log.format("No change"))
 
 			return False
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("prev %s=%s", property_name, prev))
+			Gedit.debug_plugin_message(log.format("Previous %s=%s", property_name, prev))
 
 		self.set_property(property_name, value)
 
@@ -232,7 +232,7 @@ class ExMortisWindowState(GObject.Object):
 	# window structure
 
 	def update_structure(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		prev_uris = self._uris
@@ -273,46 +273,46 @@ class ExMortisWindowState(GObject.Object):
 
 		if uris == prev_uris and notebook_widths == prev_notebook_widths:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no change"))
+				Gedit.debug_plugin_message(log.format("No change"))
 
 			return False
 
 		if uris != prev_uris:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("prev uris=%s", prev_uris))
+				Gedit.debug_plugin_message(log.format("Previous uris=%s", prev_uris))
 
 			self.emit('uris-changed')
 
 		if notebook_widths != prev_notebook_widths:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("prev notebook_widths=%s", prev_notebook_widths))
+				Gedit.debug_plugin_message(log.format("Previous notebook_widths=%s", prev_notebook_widths))
 
 			self.emit('notebook-widths-changed')
 
 		return True
 
 	def forget_notebooks(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._notebook_map = {}
 
 	def forget_notebook(self, notebook):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", notebook))
 
 		if notebook in self._notebook_map:
 			del self._notebook_map[notebook]
 
 	def forget_tabs(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._tab_map = {}
 		self._active_tab = None
 
 	def forget_tab(self, tab):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", tab))
 
 		if tab is self._active_tab:
@@ -325,7 +325,7 @@ class ExMortisWindowState(GObject.Object):
 	# window uris
 
 	def save_uris(self, window, bulk_update=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
 
 		results = [self.save_uri(window, tab, True) for tab in self._tab_map.keys()]
@@ -337,7 +337,7 @@ class ExMortisWindowState(GObject.Object):
 		return changed
 
 	def save_uri(self, window, tab, bulk_update=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s, bulk_update=%s", window, tab, bulk_update))
 
 		if not bulk_update and tab is self._active_tab:
@@ -345,7 +345,7 @@ class ExMortisWindowState(GObject.Object):
 
 		if tab not in self._tab_map:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("not in tab map"))
+				Gedit.debug_plugin_message(log.format("Tab map does not contain %s", tab))
 
 			return False
 
@@ -360,12 +360,12 @@ class ExMortisWindowState(GObject.Object):
 
 		if uri == prev_uri:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no change"))
+				Gedit.debug_plugin_message(log.format("No change"))
 
 			return False
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("prev uri=%s", prev_uri))
+			Gedit.debug_plugin_message(log.format("Previous uri=%s", prev_uri))
 
 		self._uris[notebook_index][tab_index] = uri
 
@@ -375,13 +375,13 @@ class ExMortisWindowState(GObject.Object):
 		return True
 
 	def apply_uris(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		uris = self._restore_uris
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying uris=%s", uris))
+			Gedit.debug_plugin_message(log.format("Applying uris=%s", uris))
 
 		if uris:
 			documents = window.get_documents()
@@ -407,7 +407,7 @@ class ExMortisWindowState(GObject.Object):
 	# window notebook widths
 
 	def save_notebook_widths(self, window, bulk_update=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
 
 		results = [self.save_notebook_width(window, notebook, True) for notebook in self._notebook_map.keys()]
@@ -419,12 +419,12 @@ class ExMortisWindowState(GObject.Object):
 		return changed
 
 	def save_notebook_width(self, window, notebook, bulk_update=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s, bulk_update=%s", window, notebook, bulk_update))
 
 		if notebook not in self._notebook_map:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("not in notebook map"))
+				Gedit.debug_plugin_message(log.format("Notebook map does not contain %s", notebook))
 
 			return False
 
@@ -439,12 +439,12 @@ class ExMortisWindowState(GObject.Object):
 
 		if notebook_width == prev_notebook_width:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no change"))
+				Gedit.debug_plugin_message(log.format("No change"))
 
 			return False
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("prev notebook_width=%s", prev_notebook_width))
+			Gedit.debug_plugin_message(log.format("Previous notebook_width=%s", prev_notebook_width))
 
 		self._notebook_widths[notebook_index] = notebook_width
 
@@ -454,7 +454,7 @@ class ExMortisWindowState(GObject.Object):
 		return True
 
 	def apply_notebook_widths(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		# this only works with the notebook structure created by apply_uris()
@@ -465,7 +465,7 @@ class ExMortisWindowState(GObject.Object):
 
 		if len(notebook_widths) < 2:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("have %s notebook widths, not enough to apply", len(notebook_widths)))
+				Gedit.debug_plugin_message(log.format("Have %s notebook widths, not enough to apply", len(notebook_widths)))
 
 			return
 
@@ -478,10 +478,10 @@ class ExMortisWindowState(GObject.Object):
 
 		if len(notebooks) < 2:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("have %s notebooks, not enough to apply", len(notebooks)))
+				Gedit.debug_plugin_message(log.format("Have %s notebooks, not enough to apply", len(notebooks)))
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying notebook_widths=%s", notebook_widths))
+			Gedit.debug_plugin_message(log.format("Applying notebook_widths=%s", notebook_widths))
 
 		min_len = min(len(notebooks), len(notebook_widths))
 
@@ -493,13 +493,13 @@ class ExMortisWindowState(GObject.Object):
 
 			if not isinstance(parent, Gtk.Paned):
 				if log.query(log.DEBUG):
-					Gedit.debug_plugin_message(log.format("parent %s of notebook %s is not a Gtk.Paned", parent, notebook))
+					Gedit.debug_plugin_message(log.format("Parent %s of %s is not a Gtk.Paned", parent, notebook))
 
 				continue
 
 			if parent.get_child2() is notebook:
 				if log.query(log.DEBUG):
-					Gedit.debug_plugin_message(log.format("notebook %s is not the left child of parent %s", notebook, parent))
+					Gedit.debug_plugin_message(log.format("%s is not the left child of parent %s", notebook, parent))
 
 				continue
 
@@ -509,7 +509,7 @@ class ExMortisWindowState(GObject.Object):
 	# window active uri
 
 	def save_active_uri(self, window, new_active_tab=None):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, new_active_tab))
 
 		if new_active_tab:
@@ -519,7 +519,7 @@ class ExMortisWindowState(GObject.Object):
 
 		if not active_tab:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no active tab"))
+				Gedit.debug_plugin_message(log.format("No active tab"))
 
 			return False
 
@@ -528,26 +528,26 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('active-uri', active_uri)
 
 	def apply_active_uri(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		active_uri = self.active_uri
 
 		if not active_uri:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no active uri"))
+				Gedit.debug_plugin_message(log.format("No active uri"))
 
 			return
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying active_uri=%s", active_uri))
+			Gedit.debug_plugin_message(log.format("Applying active_uri=%s", active_uri))
 
 		location = Gio.File.new_for_uri(active_uri)
 		tab = window.get_tab_from_location(location)
 
 		if not tab:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("could not find tab for active uri"))
+				Gedit.debug_plugin_message(log.format("Could not find tab for active uri"))
 
 			return
 
@@ -557,7 +557,7 @@ class ExMortisWindowState(GObject.Object):
 	# window size
 
 	def save_size(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		# gedit should (always?) set a default size
@@ -568,7 +568,7 @@ class ExMortisWindowState(GObject.Object):
 
 		if default_width == -1 and default_height == -1:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("default size not set"))
+				Gedit.debug_plugin_message(log.format("Default size not set"))
 
 			return False
 
@@ -577,21 +577,21 @@ class ExMortisWindowState(GObject.Object):
 
 		if not self.maximized and not self.fullscreen:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("using get_size()"))
+				Gedit.debug_plugin_message(log.format("Using get_size()"))
 
 			width, height = window.get_size()
 
 		# if we haven't saved before, try default size
 		elif not self.width and not self.height:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("using get_default_size()"))
+				Gedit.debug_plugin_message(log.format("Using get_default_size()"))
 
 			width = default_width
 			height = default_height
 
 		if not width or not height:
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no size to save"))
+				Gedit.debug_plugin_message(log.format("No size to save"))
 
 			return False
 
@@ -603,14 +603,14 @@ class ExMortisWindowState(GObject.Object):
 		return any(results)
 
 	def apply_size(self, window, set_default_size=False):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, set_default_size=%s", window, set_default_size))
 
 		width = self.width
 		height = self.height
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying width=%s, height=%s", width, height))
+			Gedit.debug_plugin_message(log.format("Applying width=%s, height=%s", width, height))
 
 		if set_default_size:
 			window.set_default_size(width, height)
@@ -621,7 +621,7 @@ class ExMortisWindowState(GObject.Object):
 	# window state (maximized / fullscreen)
 
 	def save_window_state(self, window, window_state=None):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, window_state=%s", window, window_state))
 
 		if window_state is None:
@@ -629,7 +629,7 @@ class ExMortisWindowState(GObject.Object):
 
 			if not gdk_window:
 				if log.query(log.DEBUG):
-					Gedit.debug_plugin_message(log.format("window not yet realized"))
+					Gedit.debug_plugin_message(log.format("Window not yet realized"))
 
 				return False
 
@@ -646,14 +646,14 @@ class ExMortisWindowState(GObject.Object):
 		return any(results)
 
 	def apply_window_state(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		maximized = self.maximized
 		fullscreen = self.fullscreen
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying maximized=%s, fullscreen=%s", maximized, fullscreen))
+			Gedit.debug_plugin_message(log.format("Applying maximized=%s, fullscreen=%s", maximized, fullscreen))
 
 		if maximized:
 			window.maximize()
@@ -669,7 +669,7 @@ class ExMortisWindowState(GObject.Object):
 	# side panel page name
 
 	def save_side_panel_page_name(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		side_panel = window.get_side_panel()
@@ -685,19 +685,19 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('side-panel-page-name', page_name)
 
 	def apply_side_panel_page_name(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		page_name = self.side_panel_page_name
 
 		if not page_name:
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("no page name"))
+				Gedit.debug_plugin_message(log.format("No page name"))
 
 			return
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying page_name=%s", page_name))
+			Gedit.debug_plugin_message(log.format("Applying page_name=%s", page_name))
 
 		side_panel = window.get_side_panel()
 		try:
@@ -709,7 +709,7 @@ class ExMortisWindowState(GObject.Object):
 	# side panel size
 
 	def save_side_panel_size(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
@@ -718,13 +718,13 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('side-panel-size', position)
 
 	def apply_side_panel_size(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		size = self.side_panel_size
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying size=%s", size))
+			Gedit.debug_plugin_message(log.format("Applying size=%s", size))
 
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
 		hpaned.set_position(size)
@@ -733,7 +733,7 @@ class ExMortisWindowState(GObject.Object):
 	# side panel visible
 
 	def save_side_panel_visible(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		side_panel = window.get_template_child(Gedit.Window, 'side_panel')
@@ -742,13 +742,13 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('side-panel-visible', visible)
 
 	def apply_side_panel_visible(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		visible = self.side_panel_visible
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying visible=%s", visible))
+			Gedit.debug_plugin_message(log.format("Applying visible=%s", visible))
 
 		side_panel = window.get_template_child(Gedit.Window, 'side_panel')
 		side_panel.set_visible(visible)
@@ -757,7 +757,7 @@ class ExMortisWindowState(GObject.Object):
 	# bottom panel page name
 
 	def save_bottom_panel_page_name(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		bottom_panel = window.get_bottom_panel()
@@ -773,7 +773,7 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('bottom-panel-page-name', page_name)
 
 	def apply_bottom_panel_page_name(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		page_name = self.bottom_panel_page_name
@@ -781,12 +781,12 @@ class ExMortisWindowState(GObject.Object):
 		if not page_name:
 			# it is possible there are no bottom panel pages
 			if log.query(log.DEBUG):
-				Gedit.debug_plugin_message(log.format("no page name"))
+				Gedit.debug_plugin_message(log.format("No page name"))
 
 			return
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying page_name=%s", page_name))
+			Gedit.debug_plugin_message(log.format("Applying page_name=%s", page_name))
 
 		bottom_panel = window.get_bottom_panel()
 		try:
@@ -798,7 +798,7 @@ class ExMortisWindowState(GObject.Object):
 	# bottom panel size
 
 	def save_bottom_panel_size(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
@@ -809,13 +809,13 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('bottom-panel-size', size)
 
 	def apply_bottom_panel_size(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		size = self.bottom_panel_size
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying size=%s", size))
+			Gedit.debug_plugin_message(log.format("Applying size=%s", size))
 
 		vpaned = window.get_template_child(Gedit.Window, 'vpaned')
 		height = vpaned.get_allocation().height
@@ -826,7 +826,7 @@ class ExMortisWindowState(GObject.Object):
 	# bottom panel visible
 
 	def save_bottom_panel_visible(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		bottom_panel = window.get_template_child(Gedit.Window, 'bottom_panel')
@@ -835,13 +835,13 @@ class ExMortisWindowState(GObject.Object):
 		return self.save_property('bottom-panel-visible', visible)
 
 	def apply_bottom_panel_visible(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		visible = self.bottom_panel_visible
 
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("applying visible=%s", visible))
+			Gedit.debug_plugin_message(log.format("Applying visible=%s", visible))
 
 		bottom_panel = window.get_template_child(Gedit.Window, 'bottom_panel')
 		bottom_panel.set_visible(visible)

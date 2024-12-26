@@ -36,13 +36,13 @@ class ExistingMixin(object):
 
 
 	def do_activate_existing(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._existing = {}
 
 	def do_deactivate_existing(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		self._existing = None
@@ -51,7 +51,7 @@ class ExistingMixin(object):
 	# info bar
 
 	def create_existing_info_bar(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		screen_settings = Gtk.Settings.get_default()
@@ -101,7 +101,7 @@ class ExistingMixin(object):
 		return info_bar
 
 	def pack_existing_info_bar(self, window, info_bar):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
@@ -121,12 +121,12 @@ class ExistingMixin(object):
 		return window in self._existing
 
 	def add_existing(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("window already added"))
+				Gedit.debug_plugin_message(log.format("Already added %s", window))
 
 			# disconnect handlers?
 
@@ -139,12 +139,12 @@ class ExistingMixin(object):
 		return (info_bar, self.EXISTING_INFO_BAR_RESPONSE_QUIT)
 
 	def show_existing_info_bar(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("window not existing"))
+				Gedit.debug_plugin_message(log.format("Not existing %s", window))
 
 			return
 
@@ -158,24 +158,24 @@ class ExistingMixin(object):
 		info_bar.show()
 
 	def get_existing_info_bar(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("window not existing"))
+				Gedit.debug_plugin_message(log.format("Not existing %s", window))
 
 			return None
 
 		return self._existing[window]
 
 	def remove_existing(self, window):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		if not self.is_existing(window):
 			if log.query(log.WARNING):
-				Gedit.debug_plugin_message(log.format("window not existing"))
+				Gedit.debug_plugin_message(log.format("Not existing %s", window))
 
 			return
 

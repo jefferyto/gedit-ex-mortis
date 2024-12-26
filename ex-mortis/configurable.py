@@ -39,7 +39,7 @@ class ExMortisConfigurable(GObject.Object, PeasGtk.Configurable):
 
 
 	def do_create_configure_widget(self):
-		if log.query(log.INFO):
+		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
 		app = Gedit.App.get_default()
