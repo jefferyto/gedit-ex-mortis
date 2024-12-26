@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist>
-	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis" gettext-domain="gedit-ex-mortis">
+<schemalist gettext-domain="gedit-ex-mortis">
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis">
 		<key type="b" name="restore-between-sessions">
 			<default>false</default>
 			<summary>Restore windows between sessions</summary>
@@ -13,7 +13,7 @@
 		</key>
 	</schema>
 
-	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis.restore-window" gettext-domain="gedit-ex-mortis">
+	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis.restore-window">
 		<key type="aas" name="uris">
 			<default>[]</default>
 			<summary>Window URIs</summary>
