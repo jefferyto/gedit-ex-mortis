@@ -95,6 +95,7 @@ class ExMortisWindowManager(GObject.Object):
 
 		multi_notebook = window.get_template_child(Gedit.Window, 'multi_notebook')
 		whole_side_panel = window.get_template_child(Gedit.Window, 'side_panel')
+		whole_bottom_panel = window.get_template_child(Gedit.Window, 'bottom_panel')
 		side_panel = window.get_side_panel()
 		bottom_panel = window.get_bottom_panel()
 		hpaned = window.get_template_child(Gedit.Window, 'hpaned')
@@ -157,15 +158,33 @@ class ExMortisWindowManager(GObject.Object):
 				'side_panel',
 				window, state
 			)
-		connect_handlers(
-			self, bottom_panel,
-			[
-				'notify::visible-child-name',
-				'notify::visible'
-			],
-			'bottom_panel',
-			window, state
-		)
+		if bottom_panel is not whole_bottom_panel:
+			connect_handlers(
+				self, whole_bottom_panel,
+				[
+					'notify::visible'
+				],
+				'bottom_panel',
+				window, state
+			)
+			connect_handlers(
+				self, bottom_panel,
+				[
+					'changed'
+				],
+				'bottom_panel',
+				window, state
+			)
+		else: # gedit 47
+			connect_handlers(
+				self, bottom_panel,
+				[
+					'notify::visible-child-name',
+					'notify::visible'
+				],
+				'bottom_panel',
+				window, state
+			)
 		connect_handlers(
 			self, hpaned,
 			[
@@ -188,6 +207,7 @@ class ExMortisWindowManager(GObject.Object):
 			{
 				'multi_notebook': multi_notebook,
 				'whole_side_panel': whole_side_panel,
+				'whole_bottom_panel': whole_bottom_panel,
 				'side_panel': side_panel,
 				'bottom_panel': bottom_panel,
 				'hpaned': hpaned,
@@ -230,6 +250,7 @@ class ExMortisWindowManager(GObject.Object):
 		disconnect_handlers(self, window)
 		disconnect_handlers(self, multi_notebook)
 		disconnect_handlers(self, widgets['whole_side_panel'])
+		disconnect_handlers(self, widgets['whole_bottom_panel'])
 		disconnect_handlers(self, widgets['side_panel'])
 		disconnect_handlers(self, widgets['bottom_panel'])
 		disconnect_handlers(self, hpaned)
@@ -456,6 +477,12 @@ class ExMortisWindowManager(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		state.save_side_panel_visible(window)
+
+	def on_bottom_panel_changed(self, bottom_panel, window, state):
+		if log.query(log.INFO):
+			Gedit.debug_plugin_message(log.format("%s",window))
+
+		state.save_bottom_panel_page_name(window)
 
 	def on_bottom_panel_notify_visible_child_name(self, bottom_panel, pspec, window, state):
 		if log.query(log.INFO):

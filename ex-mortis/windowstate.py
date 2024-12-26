@@ -754,7 +754,12 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
 		bottom_panel = window.get_bottom_panel()
-		page_name = bottom_panel.get_visible_child_name()
+
+		try:
+			page_name = bottom_panel.get_active_item_name()
+		except AttributeError: # gedit 47
+			page_name = bottom_panel.get_visible_child_name()
+
 		if not page_name:
 			page_name = ''
 
@@ -777,7 +782,10 @@ class ExMortisWindowState(GObject.Object):
 			Gedit.debug_plugin_message(log.format("applying page_name=%s", page_name))
 
 		bottom_panel = window.get_bottom_panel()
-		bottom_panel.set_visible_child_name(page_name)
+		try:
+			bottom_panel.set_active_item_name(page_name)
+		except AttributeError: # gedit 47
+			bottom_panel.set_visible_child_name(page_name)
 
 
 	# bottom panel size
@@ -814,7 +822,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
-		bottom_panel = window.get_bottom_panel()
+		bottom_panel = window.get_template_child(Gedit.Window, 'bottom_panel')
 		visible = bottom_panel.get_visible()
 
 		return self.save_property('bottom-panel-visible', visible)
@@ -828,7 +836,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("applying visible=%s", visible))
 
-		bottom_panel = window.get_bottom_panel()
+		bottom_panel = window.get_template_child(Gedit.Window, 'bottom_panel')
 		bottom_panel.set_visible(visible)
 
 
