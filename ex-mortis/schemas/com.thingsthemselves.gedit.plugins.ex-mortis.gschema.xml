@@ -4,7 +4,7 @@
 		<key type="b" name="restore-between-sessions">
 			<default>false</default>
 			<summary>Restore windows between sessions</summary>
-			<description>Whether ex-mortis should restore windows between sessions or not</description>
+			<description>Whether Ex-Mortis should restore windows between sessions or not</description>
 		</key>
 		<key type="as" name="restore-windows">
 			<default>[]</default>
