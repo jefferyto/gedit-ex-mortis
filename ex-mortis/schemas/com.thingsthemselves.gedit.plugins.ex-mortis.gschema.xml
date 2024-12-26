@@ -6,11 +6,6 @@
 			<summary>Restore windows between sessions</summary>
 			<description>Whether ex-mortis should restore windows between sessions or not</description>
 		</key>
-		<key type="aaas" name="restore-uris">
-			<default>[]</default>
-			<summary>Restore URIs</summary>
-			<description>URIs (windows/tab groups/documents) to restore between sessions</description>
-		</key>
 		<key type="as" name="restore-windows">
 			<default>[]</default>
 			<summary>Restore windows</summary>
