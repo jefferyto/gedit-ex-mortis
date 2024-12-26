@@ -223,7 +223,7 @@ class QuittingMixin(object):
 		app = Gedit.App.get_default()
 
 		self._quitting = {
-			window : window_manager.export_window_state(window, True)
+			window : window_manager.export_window_state(window, forget_notebooks=True)
 			for window in app.get_main_windows()
 		}
 

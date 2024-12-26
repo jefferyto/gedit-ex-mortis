@@ -379,7 +379,7 @@ class ExMortisWindowManager(GObject.Object):
 		app = Gedit.App.get_default()
 		window = Gedit.App.create_window(app, None)
 
-		self.import_window_state(window, state, True)
+		self.import_window_state(window, state, is_new_window=True)
 
 		window.present()
 

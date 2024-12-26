@@ -143,7 +143,7 @@ class ExMortisAppActivatable(
 		if windows:
 			# plugin activated during existing session
 			for window in windows:
-				self.setup_window(window, True)
+				self.setup_window(window, is_existing=True)
 
 	def do_deactivate(self):
 		if log.query(log.DEBUG):

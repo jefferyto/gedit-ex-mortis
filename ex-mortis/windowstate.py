@@ -265,8 +265,8 @@ class ExMortisWindowState(GObject.Object):
 		self._uris = uris
 		self._notebook_widths = notebook_widths
 
-		self.save_uris(window, True)
-		self.save_notebook_widths(window, True)
+		self.save_uris(window, bulk_update=True)
+		self.save_notebook_widths(window, bulk_update=True)
 
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("uris=%s, notebook_widths=%s", uris, notebook_widths))
@@ -328,7 +328,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
 
-		results = [self.save_uri(window, tab, True) for tab in self._tab_map.keys()]
+		results = [self.save_uri(window, tab, bulk_update=True) for tab in self._tab_map.keys()]
 		changed = any(results)
 
 		if not bulk_update and changed:
@@ -410,7 +410,7 @@ class ExMortisWindowState(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, bulk_update=%s", window, bulk_update))
 
-		results = [self.save_notebook_width(window, notebook, True) for notebook in self._notebook_map.keys()]
+		results = [self.save_notebook_width(window, notebook, bulk_update=True) for notebook in self._notebook_map.keys()]
 		changed = any(results)
 
 		if not bulk_update and changed:
