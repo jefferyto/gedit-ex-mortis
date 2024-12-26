@@ -19,8 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import gi
+gi.require_version('GObject', '2.0')
+gi.require_version('Gedit', '3.0')
+gi.require_version('Gio', '2.0')
+
 import os.path
-from gi.repository import GObject, Gio, Gedit
+from gi.repository import GObject, Gedit, Gio
 from .plugin import data_dir as plugin_data_dir
 from . import log
 

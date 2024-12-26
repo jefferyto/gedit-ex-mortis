@@ -19,7 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import GObject, GLib, Gio, Gedit
+import gi
+gi.require_version('GObject', '2.0')
+gi.require_version('GLib', '2.0')
+gi.require_version('Gedit', '3.0')
+gi.require_version('Gio', '2.0')
+
+from gi.repository import GObject, GLib, Gedit, Gio
 from .utils import connect_handlers, disconnect_handlers
 from . import log
 
