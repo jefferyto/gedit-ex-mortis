@@ -86,3 +86,18 @@ Inspired by:
 Copyright © 2017-2019, 2023-2024 Jeffery To <jeffery.to@gmail.com>
 
 Available under GNU General Public License version 3
+
+## Other plugins you may like
+
+*   [Control Your Tabs]  
+    Switch between document tabs using Ctrl+Tab and other common keyboard shortcuts
+
+*   [Python Console]  
+    Interactive Python console standing in the bottom panel
+
+*   [Tab Group Salute]  
+    Switch between tab groups using Ctrl+\<key above Tab\>
+
+[Control Your Tabs]: https://github.com/jefferyto/gedit-control-your-tabs
+[Python Console]: https://github.com/jefferyto/gedit-pythonconsole
+[Tab Group Salute]: https://github.com/jefferyto/gedit-tab-group-salute
