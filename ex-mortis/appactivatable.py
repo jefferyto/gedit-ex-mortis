@@ -59,14 +59,22 @@ class ExMortisAppActivatable(
 		# app
 		connect_handlers(
 			self, app,
-			['window-added', 'window-removed', 'shutdown'],
+			[
+				'window-added',
+				'window-removed',
+				'shutdown'
+			],
 			'app'
 		)
 
 		# window manager
 		connect_handlers(
 			self, window_manager,
-			['tab-added', 'tab-removed', 'tabs-reordered'],
+			[
+				'tab-added',
+				'tab-removed',
+				'tabs-reordered'
+			],
 			'window_manager'
 		)
 

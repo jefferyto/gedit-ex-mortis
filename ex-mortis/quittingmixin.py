@@ -514,3 +514,4 @@ def document_is_untouched(document):
 		and not document.can_redo()
 		and document.get_file().get_location() is None
 	)
+

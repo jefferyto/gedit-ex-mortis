@@ -123,9 +123,7 @@ class ExMortisWindowManager(GObject.Object):
 		if GObject.signal_lookup('tabs-reordered', window) > 0: # removed in gedit 47
 			connect_handlers(
 				self, window,
-				[
-					'tabs-reordered'
-				],
+				['tabs-reordered'],
 				'window',
 				state
 			)
@@ -141,17 +139,13 @@ class ExMortisWindowManager(GObject.Object):
 		if side_panel is not whole_side_panel:
 			connect_handlers(
 				self, whole_side_panel,
-				[
-					'notify::visible'
-				],
+				['notify::visible'],
 				'side_panel',
 				window, state
 			)
 			connect_handlers(
 				self, side_panel,
-				[
-					'changed'
-				],
+				['changed'],
 				'side_panel',
 				window, state
 			)
@@ -168,17 +162,13 @@ class ExMortisWindowManager(GObject.Object):
 		if bottom_panel is not whole_bottom_panel:
 			connect_handlers(
 				self, whole_bottom_panel,
-				[
-					'notify::visible'
-				],
+				['notify::visible'],
 				'bottom_panel',
 				window, state
 			)
 			connect_handlers(
 				self, bottom_panel,
-				[
-					'changed'
-				],
+				['changed'],
 				'bottom_panel',
 				window, state
 			)
@@ -194,17 +184,13 @@ class ExMortisWindowManager(GObject.Object):
 			)
 		connect_handlers(
 			self, hpaned,
-			[
-				'notify::position'
-			],
+			['notify::position'],
 			'hpaned',
 			window, state
 		)
 		connect_handlers(
 			self, vpaned,
-			[
-				'notify::position'
-			],
+			['notify::position'],
 			'vpaned',
 			window, state
 		)
@@ -286,7 +272,12 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.INFO):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
-		connect_handlers(self, tab, ['notify::name'], 'tab', window, state)
+		connect_handlers(
+			self, tab,
+			['notify::name'],
+			'tab',
+			window, state
+		)
 
 	def untrack_tab(self, window, tab, state):
 		if log.query(log.INFO):
