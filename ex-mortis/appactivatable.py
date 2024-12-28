@@ -55,7 +55,7 @@ class ExMortisAppActivatable(
 
 		app = self.app
 		is_primary = not (app.get_flags() & Gio.ApplicationFlags.NON_UNIQUE)
-		window_manager = ExMortisWindowManager()
+		window_manager = ExMortisWindowManager(app)
 		settings = ExMortisSettings(is_primary)
 
 		# app

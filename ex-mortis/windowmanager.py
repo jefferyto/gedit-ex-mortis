@@ -37,12 +37,13 @@ class ExMortisWindowManager(GObject.Object):
 	__gtype_name__ = 'ExMortisWindowManager'
 
 
-	def __init__(self):
+	def __init__(self, app):
 		GObject.Object.__init__(self)
 
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
+		self._app = app
 		self._windows = {}
 		self._debounce_ids = {}
 
@@ -53,6 +54,7 @@ class ExMortisWindowManager(GObject.Object):
 		for window in list(self._windows.keys()):
 			self.untrack_window(window)
 
+		self._app = None
 		self._windows = None
 		self._debounce_ids = None
 
@@ -376,8 +378,7 @@ class ExMortisWindowManager(GObject.Object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
-		app = Gedit.App.get_default()
-		window = Gedit.App.create_window(app, None)
+		window = self._app.create_window()
 
 		self.import_window_state(window, state, is_new_window=True)
 

@@ -70,9 +70,7 @@ class ExMortisAppActivatableQuittingMixin(object):
 
 		self._window_ids = {}
 
-		app = Gedit.App.get_default()
-
-		for window in app.get_main_windows():
+		for window in self.app.get_main_windows():
 			self.bind_window_settings(window_manager, settings, window)
 
 	def stop_saving_window_states(self, window_manager, settings):
@@ -85,9 +83,7 @@ class ExMortisAppActivatableQuittingMixin(object):
 
 			return
 
-		app = Gedit.App.get_default()
-
-		for window in app.get_main_windows():
+		for window in self.app.get_main_windows():
 			try:
 				self.unbind_window_settings(window_manager, settings, window)
 			except ValueError: # gedit 3.14
@@ -220,11 +216,9 @@ class ExMortisAppActivatableQuittingMixin(object):
 			if log.query(log.WARNING):
 				Gedit.debug_plugin_message(log.format("Already started quitting"))
 
-		app = Gedit.App.get_default()
-
 		self._quitting = {
 			window : window_manager.export_window_state(window, forget_notebooks=True)
-			for window in app.get_main_windows()
+			for window in self.app.get_main_windows()
 		}
 
 	# can be called when not quitting
