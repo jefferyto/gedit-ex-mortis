@@ -312,45 +312,38 @@ class QuittingMixin(object):
 
 	# restoring
 
-	def handle_restore_data(self, window_manager, settings, do_restore):
+	def prepare_restore_data(self, window_manager, settings):
 		if log.query(log.DEBUG):
-			Gedit.debug_plugin_message(log.format("do_restore=%s", do_restore))
+			Gedit.debug_plugin_message(log.format(""))
 
 		states = []
 
-		for window_id in list(settings.restore_windows):
-			if do_restore:
-				state = window_manager.new_window_state()
-				window_settings = settings.get_window_settings(window_id)
+		for window_id in settings.restore_windows:
+			state = window_manager.new_window_state()
+			window_settings = settings.get_window_settings(window_id)
 
-				if not window_settings:
-					if log.query(log.WARNING):
-						Gedit.debug_plugin_message(log.format("Could not get settings for %s", window))
-					continue
+			if not window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get settings for %s", window))
+				continue
 
-				try:
-					params = state.list_properties()
-				except AttributeError: # gedit 3.12
-					params = GObject.list_properties(state)
+			try:
+				params = state.list_properties()
+			except AttributeError: # gedit 3.12
+				params = GObject.list_properties(state)
 
-				for param in params:
-					state.set_property(
-						param.name, window_settings[param.name]
-					)
+			for param in params:
+				state.set_property(
+					param.name, window_settings[param.name]
+				)
 
-				state.uris = window_settings['uris']
-				state.notebook_widths = window_settings['notebook-widths']
+			state.uris = window_settings['uris']
+			state.notebook_widths = window_settings['notebook-widths']
 
-				if state.restore_uris:
-					states.append(state)
+			if state.restore_uris:
+				states.append(state)
 
-			settings.remove_window(window_id)
-
-		if not do_restore:
-			if log.query(log.MESSAGE):
-				Gedit.debug_plugin_message(log.format("Not restoring windows"))
-
-			return
+		settings.remove_windows()
 
 		if not states:
 			if log.query(log.MESSAGE):
@@ -382,6 +375,15 @@ class QuittingMixin(object):
 
 		self._restore_states = states
 		self._restore_windows = {}
+
+	def discard_restore_data(self, settings):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format(""))
+
+		settings.remove_windows()
+
+		if log.query(log.MESSAGE):
+			Gedit.debug_plugin_message(log.format("Not restoring windows"))
 
 	def setup_restore_window(self, window_manager, window):
 		if log.query(log.DEBUG):

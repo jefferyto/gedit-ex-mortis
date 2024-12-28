@@ -135,10 +135,10 @@ class ExMortisAppActivatable(
 		# windows
 		windows = app.get_main_windows()
 
-		self.handle_restore_data(
-			window_manager, settings,
-			settings.restore_between_sessions and not windows
-		)
+		if settings.restore_between_sessions and not windows:
+			self.prepare_restore_data(window_manager, settings)
+		else:
+			self.discard_restore_data(settings)
 
 		if windows:
 			# plugin activated during existing session

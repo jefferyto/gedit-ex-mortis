@@ -137,6 +137,13 @@ class ExMortisSettings(GObject.Object):
 
 		return window_id
 
+	def remove_windows(self):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format(""))
+
+		for window_id in list(self.restore_windows):
+			self.remove_window(window_id)
+
 	def remove_window(self, window_id):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("window_id=%s", window_id))
