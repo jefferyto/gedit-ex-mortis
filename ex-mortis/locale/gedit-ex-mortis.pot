@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gedit-ex-mortis 0.2.4-dev\n"
-"POT-Creation-Date: 2024-12-25 04:58+0800\n"
+"POT-Creation-Date: 2024-12-29 05:38+0800\n"
 "PO-Revision-Date: 2017-10-13 22:50+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,42 +13,42 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: ../..\n"
 
-#: ../../ex-mortis/__init__.py:109
+#: ../../ex-mortis/appactivatable.py:110
 msgid "Reopen Closed _Window"
 msgstr ""
 
-#: ../../ex-mortis/__init__.py:450 ../../ex-mortis/existingmixin.py:87
+#: ../../ex-mortis/configurable.py:51 ../../ex-mortis/existingmixin.py:81
 #: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:6
 msgid "Restore windows between sessions"
 msgstr ""
 
-#: ../../ex-mortis/__init__.py:466
+#: ../../ex-mortis/configurable.py:67
 msgid "Could not load settings schema"
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:67
+#: ../../ex-mortis/existingmixin.py:61
 msgid "_Quit"
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:68
+#: ../../ex-mortis/existingmixin.py:62
 msgid "_Ignore"
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:77
+#: ../../ex-mortis/existingmixin.py:71
 msgid ""
 "This window cannot be reopened if closed. Restart gedit to fully enable Ex-"
 "Mortis."
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:88
+#: ../../ex-mortis/existingmixin.py:82
 msgid "Application menu"
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:88
+#: ../../ex-mortis/existingmixin.py:82
 msgid "File menu"
 msgstr ""
 
-#: ../../ex-mortis/existingmixin.py:89
+#: ../../ex-mortis/existingmixin.py:83
 #, python-brace-format
 msgid ""
 "To restore this window, enable \"{pref_name}\" in Ex-Mortis' preferences, "
@@ -56,23 +56,23 @@ msgid ""
 msgstr ""
 
 #: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:7
-msgid "Whether ex-mortis should restore windows between sessions or not"
+msgid "Whether Ex-Mortis should restore windows between sessions or not"
 msgstr ""
 
 #: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:11
-msgid "Restore URIs"
-msgstr ""
-
-#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:12
-msgid "URIs (windows/tab groups/documents) to restore between sessions"
-msgstr ""
-
-#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:16
 msgid "Restore windows"
 msgstr ""
 
-#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:17
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:12
 msgid "List of windows to restore between sessions"
+msgstr ""
+
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:16
+msgid "Backup restore windows"
+msgstr ""
+
+#: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:17
+msgid "Backup list of windows to restore between sessions"
 msgstr ""
 
 #: ../../ex-mortis/schemas/com.thingsthemselves.gedit.plugins.ex-mortis.gschema.xml:24
