@@ -7,6 +7,7 @@
 * Settings schema can be stored in a shared schemas location instead of
   the plugin "schemas" directory
 * Fixed AttributeError when loaded in gedit 48 ([#12])
+* Changed license to GPL-2.0-or-later ([#13])
 
 ## [0.2.3] - 2024-06-07
 * Fixed error when loaded in gedit 47 ([#11])
@@ -51,3 +52,4 @@
 [#9]: https://github.com/jefferyto/gedit-ex-mortis/issues/9
 [#11]: https://github.com/jefferyto/gedit-ex-mortis/issues/11
 [#12]: https://github.com/jefferyto/gedit-ex-mortis/issues/12
+[#13]: https://github.com/jefferyto/gedit-ex-mortis/issues/13

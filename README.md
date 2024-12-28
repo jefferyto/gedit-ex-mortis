@@ -85,7 +85,7 @@ Inspired by:
 
 Copyright © 2017-2019, 2023-2024 Jeffery To <jeffery.to@gmail.com>
 
-Available under GNU General Public License version 3
+Available under GNU General Public License version 2 or later
 
 ## Other plugins you may like
 
