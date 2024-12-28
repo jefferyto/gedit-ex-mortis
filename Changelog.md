@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.4-dev][Unreleased] - Unreleased
+## [0.3.0] - 2024-12-29
 * Save a backup of window data, and restore from backup if it exists,
   before restoring windows on startup; this should keep window data
   safe if an error occurs while restoring windows
@@ -37,7 +37,7 @@
 * Initial release
 
 
-[Unreleased]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.3...main
+[0.3.0]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.3...0.3.0
 [0.2.3]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/jefferyto/gedit-ex-mortis/compare/0.2.0...0.2.1
