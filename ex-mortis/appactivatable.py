@@ -25,10 +25,10 @@ gi.require_version('Gedit', '3.0')
 gi.require_version('Gio', '2.0')
 
 from gi.repository import GObject, Gedit, Gio
-from .closingmixin import ClosingMixin
-from .existingmixin import ExistingMixin
+from .closingmixin import ExMortisAppActivatableClosingMixin
+from .existingmixin import ExMortisAppActivatableExistingMixin
 from .plugin import _
-from .quittingmixin import QuittingMixin
+from .quittingmixin import ExMortisAppActivatableQuittingMixin
 from .settings import ExMortisSettings
 from .utils import connect_handlers, disconnect_handlers
 from .windowmanager import ExMortisWindowManager
@@ -36,7 +36,9 @@ from . import log
 
 
 class ExMortisAppActivatable(
-		ExistingMixin, ClosingMixin, QuittingMixin,
+		ExMortisAppActivatableExistingMixin,
+		ExMortisAppActivatableClosingMixin,
+		ExMortisAppActivatableQuittingMixin,
 		GObject.Object, Gedit.AppActivatable):
 
 	__gtype_name__ = 'ExMortisAppActivatable'

@@ -28,7 +28,7 @@ from .plugin import _
 from . import log
 
 
-class ExistingMixin(object):
+class ExMortisAppActivatableExistingMixin(object):
 
 	EXISTING_INFO_BAR_RESPONSE_QUIT = Gtk.ResponseType.YES
 

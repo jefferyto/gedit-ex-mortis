@@ -30,7 +30,7 @@ from .utils import connect_handlers, disconnect_handlers
 from . import log
 
 
-class QuittingMixin(object):
+class ExMortisAppActivatableQuittingMixin(object):
 
 	def do_activate_quitting(self, is_saving_window_states):
 		if log.query(log.DEBUG):

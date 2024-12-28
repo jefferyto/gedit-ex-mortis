@@ -26,7 +26,7 @@ from gi.repository import Gedit
 from . import log
 
 
-class ClosingMixin(object):
+class ExMortisAppActivatableClosingMixin(object):
 
 	def do_activate_closing(self):
 		if log.query(log.DEBUG):
