@@ -310,6 +310,14 @@ class ExMortisAppActivatableQuittingMixin(object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
+		if settings.have_backup:
+			if log.query(log.MESSAGE):
+				Gedit.debug_plugin_message(log.format("Restoring backup window data"))
+
+			settings.restore_backup()
+
+		settings.save_backup()
+
 		states = []
 
 		for window_id in settings.restore_windows:
@@ -374,12 +382,13 @@ class ExMortisAppActivatableQuittingMixin(object):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format(""))
 
+		settings.clear_backup()
 		settings.remove_windows()
 
 		if log.query(log.MESSAGE):
 			Gedit.debug_plugin_message(log.format("Not restoring windows"))
 
-	def setup_restore_window(self, window_manager, window):
+	def setup_restore_window(self, window_manager, settings, window):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s", window))
 
@@ -399,7 +408,8 @@ class ExMortisAppActivatableQuittingMixin(object):
 			Gedit.debug_plugin_message(log.format("Setting up %s", window))
 
 		self._restore_windows[window] = window.connect(
-			'tab-added', self.on_restore_window_tab_added, window_manager
+			'tab-added', self.on_restore_window_tab_added,
+			window_manager, settings
 		)
 
 	def teardown_restore_windows(self):
@@ -440,20 +450,20 @@ class ExMortisAppActivatableQuittingMixin(object):
 
 		del self._restore_windows[window]
 
-	def on_restore_window_tab_added(self, window, tab, window_manager):
+	def on_restore_window_tab_added(self, window, tab, window_manager, settings):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
 		self.teardown_restore_windows()
 
 		def do_restore_windows():
-			self.restore_windows(window_manager, window, tab)
+			self.restore_windows(window_manager, settings, window, tab)
 
 			return False
 
 		GLib.idle_add(do_restore_windows)
 
-	def restore_windows(self, window_manager, window, tab):
+	def restore_windows(self, window_manager, settings, window, tab):
 		if log.query(log.DEBUG):
 			Gedit.debug_plugin_message(log.format("%s, %s", window, tab))
 
@@ -494,6 +504,8 @@ class ExMortisAppActivatableQuittingMixin(object):
 
 		for state in self._restore_states:
 			window_manager.open_new_window_with_window_state(state)
+
+		settings.clear_backup()
 
 		self._restore_states = None
 

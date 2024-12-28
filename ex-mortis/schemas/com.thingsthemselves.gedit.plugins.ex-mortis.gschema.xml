@@ -11,6 +11,11 @@
 			<summary>Restore windows</summary>
 			<description>List of windows to restore between sessions</description>
 		</key>
+		<key type="as" name="backup-restore-windows">
+			<default>[]</default>
+			<summary>Backup restore windows</summary>
+			<description>Backup list of windows to restore between sessions</description>
+		</key>
 	</schema>
 
 	<schema id="com.thingsthemselves.gedit.plugins.ex-mortis.restore-window">

@@ -38,6 +38,8 @@ class ExMortisSettings(GObject.Object):
 
 	restore_windows = GObject.Property(type=GObject.GType.from_name('GStrv'), default=[])
 
+	backup_restore_windows = GObject.Property(type=GObject.GType.from_name('GStrv'), default=[])
+
 
 	def __init__(self, is_enabled=True):
 		GObject.Object.__init__(self)
@@ -119,6 +121,10 @@ class ExMortisSettings(GObject.Object):
 	def can_save(self):
 		return bool(self._settings)
 
+	@property
+	def have_backup(self):
+		return bool(self.backup_restore_windows)
+
 
 	def add_window(self):
 		if log.query(log.DEBUG):
@@ -195,12 +201,7 @@ class ExMortisSettings(GObject.Object):
 
 			return
 
-		settings = get_settings(
-			self._schema_source,
-			'com.thingsthemselves.gedit.plugins.ex-mortis.restore-window',
-			'/com/thingsthemselves/gedit/plugins/ex-mortis/restore-windows/' + window_id + '/'
-		)
-
+		settings = get_window_settings(self._schema_source, window_id)
 		self._window_settings[window_id] = settings
 
 	def get_window_settings(self, window_id):
@@ -227,9 +228,123 @@ class ExMortisSettings(GObject.Object):
 
 		settings = self._window_settings[window_id]
 
-		for key in settings.keys():
-			settings.reset(key)
+		if not settings:
+			if log.query(log.WARNING):
+				Gedit.debug_plugin_message(log.format("No settings for window id %s", window_id))
 
+			return
+
+		reset_settings(settings)
+
+	def save_backup(self):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format(""))
+
+		if not self.can_save:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("Not modifying settings"))
+
+			return
+
+		self.clear_backup()
+
+		schema_source = self._schema_source
+		restore_windows = self.restore_windows
+
+		for window_id in restore_windows:
+			window_settings = self.get_window_settings(window_id)
+			backup_window_settings = get_window_settings(schema_source, window_id, backup=True)
+
+			if not window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get settings for window id %s", window_id))
+
+				continue
+
+			if not backup_window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get backup settings for window id %s", window_id))
+
+				continue
+
+			copy_settings(window_settings, backup_window_settings)
+
+		self.backup_restore_windows = restore_windows
+
+		Gio.Settings.sync()
+
+	def restore_backup(self):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format(""))
+
+		if not self.can_save:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("Not modifying settings"))
+
+			return
+
+		self.remove_windows()
+
+		schema_source = self._schema_source
+
+		for backup_window_id in self.backup_restore_windows:
+			backup_window_settings = get_window_settings(schema_source, backup_window_id, backup=True)
+
+			if not backup_window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get backup settings for window id %s", backup_window_id))
+
+				continue
+
+			window_id = self.add_window()
+			window_settings = self.get_window_settings(window_id)
+
+			if not window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get settings for window id %s", window_id))
+
+				continue
+
+			copy_settings(backup_window_settings, window_settings)
+
+	def clear_backup(self):
+		if log.query(log.DEBUG):
+			Gedit.debug_plugin_message(log.format(""))
+
+		if not self.can_save:
+			if log.query(log.DEBUG):
+				Gedit.debug_plugin_message(log.format("Not modifying settings"))
+
+			return
+
+		schema_source = self._schema_source
+
+		for backup_window_id in self.backup_restore_windows:
+			backup_window_settings = get_window_settings(schema_source, backup_window_id, backup=True)
+
+			if not backup_window_settings:
+				if log.query(log.WARNING):
+					Gedit.debug_plugin_message(log.format("Could not get backup settings for window id %s", backup_window_id))
+
+				continue
+
+			reset_settings(backup_window_settings)
+
+		self._settings.reset('backup-restore-windows')
+
+		Gio.Settings.sync()
+
+def get_window_settings(schema_source, window_id, backup=False):
+	if log.query(log.DEBUG):
+		Gedit.debug_plugin_message(log.format("window_id=%s, backup=%s", window_id, backup))
+
+	schema_id = 'com.thingsthemselves.gedit.plugins.ex-mortis.restore-window'
+
+	settings_base_path = '/com/thingsthemselves/gedit/plugins/ex-mortis/'
+	settings_dir = 'restore-windows/' if not backup else 'backup-restore-windows/'
+	settings_path = settings_base_path + settings_dir + window_id + '/'
+
+	return get_settings(schema_source, schema_id, settings_path)
 
 def get_settings(schema_source, schema_id, settings_path=None):
 	if log.query(log.DEBUG):
@@ -237,4 +352,18 @@ def get_settings(schema_source, schema_id, settings_path=None):
 
 	schema = schema_source.lookup(schema_id, True)
 	return Gio.Settings.new_full(schema, None, settings_path) if schema else None
+
+def copy_settings(source, destination):
+	if log.query(log.DEBUG):
+		Gedit.debug_plugin_message(log.format(""))
+
+	for key in source.keys():
+		destination[key] = source[key]
+
+def reset_settings(settings):
+	if log.query(log.DEBUG):
+		Gedit.debug_plugin_message(log.format(""))
+
+	for key in settings.keys():
+		settings.reset(key)
 

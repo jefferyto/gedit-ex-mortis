@@ -1,6 +1,9 @@
 # Changelog
 
 ## [0.2.4-dev][Unreleased] - Unreleased
+* Save a backup of window data, and restore from backup if it exists,
+  before restoring windows on startup; this should keep window data
+  safe if an error occurs while restoring windows
 * Settings schema can be stored in a shared schemas location instead of
   the plugin "schemas" directory
 * Fixed AttributeError when loaded in gedit 48 ([#12])
